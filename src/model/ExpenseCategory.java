@@ -1,14 +1,9 @@
 package model;
-/*
- * TODO
- *
- *
- *
- */
 
 /**
- * TODO
+ * Canonical set of expense categories supported by the Expenses calculator.
  *
+ * Categories are used for consistent labeling in the UI and reporting.
  */
 public enum ExpenseCategory {
     TRANSPORTATION("Transportation"),
@@ -35,12 +30,12 @@ public enum ExpenseCategory {
         this.displayName = displayName;
     }
 
-    /** Human-friendly label for UI */
+    /** Human-friendly label for UI controls (ComboBox, TableView, etc.). */
     public String getDisplayName() {
         return displayName;
     }
 
-    /** Make default string usage pretty everywhere (e.g., ComboBox) */
+    /** Default string representation for display contexts. */
     @Override
     public String toString() {
         return displayName;
