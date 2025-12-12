@@ -1,16 +1,10 @@
 package model;
-/*
- * TODO
- *
- *
- *
- */
 
 /**
- * TODO
+ * Input parameters for tax calculations.
  *
- * @param year
- * @param gross
+ * gross is treated as the taxable base in this simplified implementation
+ * (i.e., does not include deductions, exemptions, or adjustments).
  */
 public record TaxInputs(int year, FilingStatus status, double gross) {
     public TaxInputs {
