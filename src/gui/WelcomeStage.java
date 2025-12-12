@@ -1,18 +1,10 @@
 package gui;
-/*
- * TODO
- *
- *
- *
- */
 
-//
 import javafx.animation.PauseTransition;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
@@ -22,20 +14,26 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 
 /**
- * TODO
+ * Application entry point and navigation controller for the JavaFX UI.
  *
+ * Responsibilities:
+ * - Show a short welcome screen
+ * - Present a main menu
+ * - Navigate to feature views (Payroll, Tax, Expenses)
+ * - Display an exit screen
+ *
+ * Note: This class intentionally keeps routing logic in one place
+ * so feature views remain focused on UI + data entry.
  */
 public class WelcomeStage extends Application {
 
     private Stage primaryStage;
-    private Label titleLabel;
-    private BorderPane rootLayout;
 
     @Override
     public void start(Stage stage) {
         this.primaryStage = stage;
 
-        // Welcome Screen
+        // Initial stage setup.
         Scene scene = new Scene(new StackPane(), 800, 600);
         primaryStage.setScene(scene);
         primaryStage.setTitle("Accounting App");
@@ -44,7 +42,7 @@ public class WelcomeStage extends Application {
         showWelcomeScene();
     }
 
-    // Menu that displays the welcome scene
+    /** Shows a timed welcome screen before transitioning to the main menu. */
     private void showWelcomeScene() {
         Label welcomeLabel = new Label("Welcome to the Accounting App!!!");
         welcomeLabel.setStyle("-fx-font-size: 32px; -fx-font-weight: bold; -fx-font-family: 'Arial';");
@@ -53,17 +51,14 @@ public class WelcomeStage extends Application {
         Scene welcomeScene = new Scene(welcomePane, 800, 600);
         primaryStage.setScene(welcomeScene);
 
-        // 3-second delay, then displays menu
+        // Delay ensures the user sees the app "boot" state.
         PauseTransition pause = new PauseTransition(Duration.seconds(3));
         pause.setOnFinished(event -> showMenuScene());
         pause.play();
-
     }
 
-    // Menu that displays the main menu scene
+    /** Main menu screen for routing to calculators. */
     private void showMenuScene() {
-
-        // Simple Menu Screen
         Label menuLabel = new Label("Main Menu");
         menuLabel.setStyle("-fx-font-size: 36px; -fx-font-weight: bold; -fx-font-family: 'Arial';");
 
@@ -87,17 +82,17 @@ public class WelcomeStage extends Application {
         primaryStage.setScene(menuScene);
     }
 
-    // Menu that displays the payroll scene
+    /** Navigate to Payroll screen. */
     private void showPayrollScene() {
         PayrollCalculatorView.show(primaryStage, this::showMenuScene);
     }
 
-    // Menu that displays the tax calculator scene
+    /** Navigate to Tax screen. */
     private void showTaxCalculatorScene() {
         TaxCalculatorView.show(primaryStage, this::showMenuScene);
     }
 
-    // Menu that displays the expenses scene
+    /** Navigate to Expenses screen. */
     private void showExpensesScene() {
         ExpensesView view = new ExpensesView(
                 this::showMenuScene,
@@ -108,24 +103,15 @@ public class WelcomeStage extends Application {
         primaryStage.setScene(scene);
     }
 
-    // Menu that displays the exit scene
+    /** Navigate to Exit screen (auto-terminates). */
     private void showExitScene() {
         ExitView.show(primaryStage);
     }
 
-    // Creates a button to return to the Main Menu
-    private Button createBackButton() {
-        Button backButton = new Button("Back to Main Menu");
-        backButton.setOnAction(event -> showMenuScene());
-        return backButton;
-    }
-
-    private Button createCalculateButton() {
-        Button calculateButton = new Button("Calculate");
-        calculateButton.setOnAction(e -> showCalculatingPopup());
-        return calculateButton;
-    }
-
+    /**
+     * Displays a short modal popup for feedback during longer operations.
+     * Currently used as a UI cue; the calculations are instantaneous.
+     */
     private void showCalculatingPopup() {
         Stage popup = new Stage();
         popup.initModality(Modality.APPLICATION_MODAL);
@@ -140,20 +126,16 @@ public class WelcomeStage extends Application {
 
         Scene scene = new Scene(layout, 250, 120);
         popup.setScene(scene);
-
         popup.show();
 
-        // Auto-close after 2 seconds
+        // Auto-close after 2 seconds.
         PauseTransition pause = new PauseTransition(Duration.seconds(2));
         pause.setOnFinished(ev -> popup.close());
         pause.play();
     }
 
-
-    // Main method that starts the GUI
+    /** Launches the JavaFX application. */
     public static void main(String[] args) {
         launch(args);
     }
-
 }
-
