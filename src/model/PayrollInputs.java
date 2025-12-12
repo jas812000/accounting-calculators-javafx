@@ -1,17 +1,10 @@
 package model;
-/*
- * TODO
- *
- *
- *
- */
 
 /**
- * TODO
+ * Inputs for payroll computation.
  *
- * @param hourlyRate
- * @param hoursInPeriod
- * @param schedule
+ * This record enforces minimal validation to prevent invalid calculations
+ * (negative hours, missing schedule, etc.).
  */
 public record PayrollInputs(
         double hourlyRate,
