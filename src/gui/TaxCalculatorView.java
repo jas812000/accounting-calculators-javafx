@@ -1,12 +1,5 @@
 package gui;
-/*
- * TODO
- *
- *
- *
- */
 
-//
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.geometry.Insets;
@@ -15,19 +8,25 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+
 import java.text.NumberFormat;
 import java.util.Locale;
 import java.util.function.UnaryOperator;
 
-// model imports
 import model.FilingStatus;
 import model.TaxInputs;
 import model.TaxResult;
 import model.TaxCalculator;
 
 /**
- * TODO
+ * Tax calculator screen.
  *
+ * Collects tax year, filing status, and gross pay amount, then calculates:
+ * - FICA (simplified)
+ * - Federal income tax (via year-specific tax table calculator)
+ * - Net amount (gross - deductions)
+ *
+ * This view is UI-only; calculation logic lives in the model layer.
  */
 public final class TaxCalculatorView extends VBox {
 
@@ -43,7 +42,6 @@ public final class TaxCalculatorView extends VBox {
         yearDropdown.getItems().addAll(2025); // extend as needed
         yearDropdown.setPromptText("Select tax year");
 
-        //
         ComboBox<FilingStatus> filingStatusDropdown = new ComboBox<>();
         filingStatusDropdown.getItems().addAll(
                 FilingStatus.SINGLE,
@@ -55,11 +53,10 @@ public final class TaxCalculatorView extends VBox {
         );
         filingStatusDropdown.setPromptText("Select filing status");
 
-
         TextField amountInput = new TextField();
         amountInput.setPromptText("Gross Pay Amount");
 
-        // Allow only numbers with up to 2 decimals
+        // Allow only numbers with up to 2 decimals.
         UnaryOperator<TextFormatter.Change> amountFilter = change -> {
             String txt = change.getControlNewText();
             if (txt.isEmpty()) return change;
@@ -72,7 +69,7 @@ public final class TaxCalculatorView extends VBox {
 
         Button calcBtn = new Button("Calculate");
 
-        // Disable until year chosen, filing status chosen, and amount valid
+        // Disable until year chosen, filing status chosen, and amount is valid money format.
         BooleanBinding amountInvalid = Bindings.createBooleanBinding(
                 () -> {
                     String t = amountInput.getText();
@@ -111,7 +108,7 @@ public final class TaxCalculatorView extends VBox {
         Button backBtn = new Button("Back to Main Menu");
         backBtn.setOnAction(e -> { if (onBack != null) onBack.run(); });
 
-        // Set consistent widths
+        // Consistent control widths.
         double controlWidth = 240;
         yearDropdown.setMaxWidth(controlWidth);
         filingStatusDropdown.setMaxWidth(controlWidth);
