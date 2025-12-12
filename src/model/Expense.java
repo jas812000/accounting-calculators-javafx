@@ -1,52 +1,46 @@
 package model;
-/*
- * TODO
- *
- *
- *
- */
 
-//
 import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.util.Locale;
 
 /**
- * Represents a single expense record in the application
- * <p>
- * An expense contains:
- * <p>
- *      The category of the expense
- *      A text description of the expense
- *      The monetary amount of the expense
- *      An optional due date of the expense
- * <p>
- * This class is immutable; all fields are declared final and set
- * through the constructor, and only accessible through getters.
+ * Immutable expense record used by the Expenses calculator.
+ *
+ * Each Expense includes:
+ * - a required category
+ * - an optional description
+ * - a required monetary amount
+ * - an optional due date
+ *
+ * This model is intentionally UI-friendly (e.g., formatted toString) while keeping
+ * core fields immutable and validated at construction time.
  */
 public class Expense {
 
-    /**
-     * Core data fields for an expense record:
-     * - category: the category of the expense (cannot be null)
-     * - description: a short text description of the expense (nullable)
-     * - amount: the monetary cost of the expense (cannot be null)
-     *      - Double so null checks are possible
-     * - dueDate: the date the expense is due (nullable if not applicable)
-     */
+    /** Required category for the expense (never null). */
     private final ExpenseCategory category;
+
+    /** Optional free-text description (may be null or blank). */
     private final String description;
+
+    /**
+     * Required monetary amount (stored as Double to allow null checks at construction).
+     * Business rules for positivity are enforced in the UI layer before object creation.
+     */
     private final Double amount;
+
+    /** Optional due date (may be null). */
     private final LocalDate dueDate;
 
     /**
-     * Constructor that creates a new expense record.
+     * Creates a new Expense record.
      *
-     * @param category                      the category of the expense; cannot be null
-     * @param description                   a short description of the expense; may be null
-     * @param amount                        the amount of the expense; cannot be null
-     * @param dueDate                       the due date of the expense; may be null
-     * @throws IllegalArgumentException     if category or amount is null
+     * @param category  required category (non-null)
+     * @param description optional description (nullable)
+     * @param amount    required amount (non-null)
+     * @param dueDate   optional due date (nullable)
+     * @throws IllegalArgumentException if category or amount is null
      */
     public Expense(ExpenseCategory category, String description, Double amount, LocalDate dueDate) {
         if (category == null) {
@@ -62,63 +56,60 @@ public class Expense {
         this.dueDate = dueDate;
     }
 
-    // Returns the category of the expense
+    /** @return the expense category */
     public ExpenseCategory getCategory() {
         return category;
     }
 
-    // Returns the description of the expense
+    /** @return the description text (may be null) */
     public String getDescription() {
         return description;
     }
 
-    // Returns the amount of the expense
+    /** @return the expense amount as a primitive double */
     public double getAmount() {
         return amount;
     }
 
-    // Returns the due date of the expense (null if not entered)
+    /** @return the due date (may be null) */
     public LocalDate getDueDate() {
         return dueDate;
     }
 
     /**
-     * Returns a human-readable string representation of
-     * this model.Expense
+     * Returns a human-readable summary string for display and debugging.
      *
-     * @return  a formatted string describing the expense
+     * Formats monetary values using US currency rules and omits optional fields
+     * when they are not present.
+     *
+     * @return formatted description of the expense
      */
     @Override
     public String toString() {
-
-        // Currency formatter for US currency
+        // Currency formatter for US currency.
         NumberFormat numFormat = NumberFormat.getCurrencyInstance(Locale.US);
 
-        // Formats amount to no decimals (whole number) or two decimals
+        // Format amount as a whole number if it has no fractional component; otherwise show 2 decimals.
         boolean isWhole = amount % 1 == 0;
-
-        // If a whole number, no decimal places; else shows exactly 2 decimals
         numFormat.setMinimumFractionDigits(isWhole ? 0 : 2);
         numFormat.setMaximumFractionDigits(isWhole ? 0 : 2);
 
-        // Formats the amount into a string
         String amountStr = numFormat.format(amount);
 
-        // Create formatted string, starting with category and amount
+        // Build output: CATEGORY | $amount | optional fields...
         StringBuilder sb = new StringBuilder();
         sb.append(category.name())
-                .append(" | ")
-                .append(amountStr);
+          .append(" | ")
+          .append(amountStr);
 
-        // Append description if provided
         if (description != null && !description.isBlank()) {
             sb.append(" | Description: ").append(description.trim());
         }
 
-        // Append due date if provided
         if (dueDate != null) {
             sb.append(" | Due: ").append(dueDate);
         }
+
         return sb.toString();
     }
 }
