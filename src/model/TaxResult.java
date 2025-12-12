@@ -1,19 +1,13 @@
 package model;
-/*
- * TODO
- *
- *
- *
- */
 
 /**
- * TODO
+ * Output values from tax computation.
  *
- * @param year
- * @param gross
- * @param fica
- * @param federal
- * @param net
+ * Includes:
+ * - gross input amount
+ * - computed FICA (simplified)
+ * - computed federal tax (table-based)
+ * - net amount after deductions
  */
 public record TaxResult(
         int year,
@@ -23,7 +17,5 @@ public record TaxResult(
         double federal,
         double net
 ) {
-
-    // TODO: add code later
+    // Record provides immutable storage; behavior can be added later if needed.
 }
-
