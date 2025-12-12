@@ -1,42 +1,39 @@
 package gui;
-/*
- * TODO
- *
- *
- *
- */
 
-//
+import javafx.beans.binding.Bindings;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
-import model.PaySchedule;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
+
 import java.text.NumberFormat;
 import java.util.Locale;
 import java.util.function.UnaryOperator;
 
 /**
- * TODO
+ * Payroll calculator screen.
  *
+ * Supports two input modes:
+ * - Hourly pay (rate + hours in period)
+ * - Annual pay (annual salary)
+ *
+ * Users select a pay schedule (weekly/bi-weekly/monthly) and the system computes
+ * gross pay, FICA, and net pay. Federal/other deductions are placeholders for
+ * future expansion.
  */
 public final class PayrollCalculatorView extends VBox {
 
     public PayrollCalculatorView(Runnable onBack) {
-        // --- Layout scaffold ---
         setSpacing(18);
         setPadding(new Insets(32));
         setAlignment(Pos.TOP_CENTER);
 
-        // --- Title ---
         Label title = new Label("Payroll Calculator");
         title.setStyle("-fx-font-size: 28px; -fx-font-weight: bold; -fx-font-family: 'Arial';");
 
-        // --- Pay type (side-by-side) ---
+        // --- Pay type selection ---
         RadioButton hourlyRadio = new RadioButton("Hourly Pay");
         RadioButton annualRadio = new RadioButton("Annual Pay");
         ToggleGroup payTypeGroup = new ToggleGroup();
@@ -47,7 +44,7 @@ public final class PayrollCalculatorView extends VBox {
         HBox payTypeRow = new HBox(16, hourlyRadio, annualRadio);
         payTypeRow.setAlignment(Pos.CENTER);
 
-        // --- Pay schedule (radio group) ---
+        // --- Pay schedule selection ---
         RadioButton weekly   = new RadioButton("Weekly");
         RadioButton biWeekly = new RadioButton("Bi-weekly");
         RadioButton monthly  = new RadioButton("Monthly");
@@ -60,7 +57,7 @@ public final class PayrollCalculatorView extends VBox {
         HBox scheduleRow = new HBox(16, new Label("Pay schedule:"), weekly, biWeekly, monthly);
         scheduleRow.setAlignment(Pos.CENTER);
 
-        // --- Hourly inputs ---
+        // --- Inputs ---
         TextField hourlyRate = new TextField();
         hourlyRate.setPromptText("Hourly pay");
         TextField hoursInPeriod = new TextField();
@@ -68,12 +65,11 @@ public final class PayrollCalculatorView extends VBox {
         hourlyRate.setPrefWidth(180);
         hoursInPeriod.setPrefWidth(220);
 
-        // --- Annual inputs ---
         TextField annualSalaryField = new TextField();
         annualSalaryField.setPromptText("Annual pay amount");
         annualSalaryField.setPrefWidth(220);
 
-        // simple numeric formatter w/ up to 2 decimals
+        // Numeric formatter: digits + optional decimal, max 2 decimals.
         UnaryOperator<TextFormatter.Change> moneyFilter = ch -> {
             String s = ch.getControlNewText();
             if (s.isEmpty()) return ch;
@@ -92,18 +88,16 @@ public final class PayrollCalculatorView extends VBox {
         HBox annualInputRow = new HBox(12, annualSalaryField);
         annualInputRow.setAlignment(Pos.CENTER);
 
-
-        // --- Calculate & Back ---
         Button calcBtn = new Button("Calculate");
         Button backBtn = new Button("Back to Main Menu");
         backBtn.setOnAction(e -> { if (onBack != null) onBack.run(); });
 
-        // --- Results box ---
+        // --- Results ---
         Label resultsHeader = new Label("Results");
         resultsHeader.setStyle("-fx-font-weight: bold;");
 
         Label rHourly  = new Label("Hourly Pay: —");
-        Label rAnnual = new Label ("Annual Pay (Gross): —");
+        Label rAnnual  = new Label("Annual Pay (Gross): —");
         Label rSched   = new Label("Pay Schedule: —");
         Label rHours   = new Label("Hours in Period: —");
         Label rGross   = new Label("Gross Pay: —");
@@ -114,7 +108,8 @@ public final class PayrollCalculatorView extends VBox {
 
         VBox resultsBox = new VBox(6,
                 resultsHeader, rHourly, rAnnual, rSched, rHours, rGross,
-                new Label("Deductions:"), rFed, rFica, rOther, rNet);
+                new Label("Deductions:"), rFed, rFica, rOther, rNet
+        );
         resultsBox.setPadding(new Insets(12));
         resultsBox.setStyle("""
                 -fx-border-color: #ccc;
@@ -124,7 +119,7 @@ public final class PayrollCalculatorView extends VBox {
                 """);
         resultsBox.setMaxWidth(460);
 
-        // show/hide hourly section if needed (annual path TBD)
+        // Show/hide relevant input row based on pay type.
         Runnable updateVisibility = () -> {
             boolean hourly = hourlyRadio.isSelected();
 
@@ -138,7 +133,7 @@ public final class PayrollCalculatorView extends VBox {
             annualInputRow.setManaged(!hourly);
         };
 
-        // Reset the fields when using the radio buttons
+        // Reset fields whenever user switches pay type.
         Runnable resetFields = () -> {
             hourlyRate.clear();
             hoursInPeriod.clear();
@@ -156,35 +151,28 @@ public final class PayrollCalculatorView extends VBox {
         };
 
         updateVisibility.run();
-        hourlyRadio.selectedProperty().addListener((o, a, b) -> {
-            updateVisibility.run();
-            resetFields.run();
-        });
-        annualRadio.selectedProperty().addListener((o, a, b) -> {
-            updateVisibility.run();
-            resetFields.run();
-        });
+        hourlyRadio.selectedProperty().addListener((o, a, b) -> { updateVisibility.run(); resetFields.run(); });
+        annualRadio.selectedProperty().addListener((o, a, b) -> { updateVisibility.run(); resetFields.run(); });
 
-        // --- Calculate handler (Hourly only for now) ---
+        // --- Calculate handler ---
         calcBtn.setOnAction(e -> {
-            if (hourlyRadio.isSelected()) {
+            NumberFormat cf = NumberFormat.getCurrencyInstance(Locale.US);
 
-                // --- Hourly Pay Calculation ---
-                String rateText = hourlyRate.getText().trim();
+            // Resolve schedule selection into enum used by the model layer.
+            model.PaySchedule schedule = weekly.isSelected() ? model.PaySchedule.WEEKLY
+                    : (biWeekly.isSelected() ? model.PaySchedule.BI_WEEKLY : model.PaySchedule.MONTHLY);
+
+            if (hourlyRadio.isSelected()) {
+                String rateText  = hourlyRate.getText().trim();
                 String hoursText = hoursInPeriod.getText().trim();
                 if (rateText.isBlank() || hoursText.isBlank()) return;
 
                 try {
-                    double rate = Double.parseDouble(rateText);
+                    double rate  = Double.parseDouble(rateText);
                     double hours = Double.parseDouble(hoursText);
-
-                    model.PaySchedule schedule = weekly.isSelected() ? model.PaySchedule.WEEKLY
-                            : (biWeekly.isSelected() ? model.PaySchedule.BI_WEEKLY : model.PaySchedule.MONTHLY);
 
                     model.PayrollInputs inputs = new model.PayrollInputs(rate, hours, schedule);
                     model.PayrollResult result = model.PayrollCalculator.calculateFromHourly(inputs);
-
-                    NumberFormat cf = NumberFormat.getCurrencyInstance(Locale.US);
 
                     rHourly.setText("Hourly Pay: " + cf.format(result.hourlyRate()));
                     rAnnual.setText("Annual Pay (Gross): " + cf.format(result.annualPay()));
@@ -194,34 +182,26 @@ public final class PayrollCalculatorView extends VBox {
                                     ? String.format("%.0f", result.hoursInPeriod())
                                     : String.format("%.2f", result.hoursInPeriod())));
                     rGross.setText("Gross Pay: " + cf.format(result.gross()));
-                    rFed.setText("Federal: —"); // cf.format(result.federal()) when implemented
+                    rFed.setText("Federal: —"); // placeholder until withholding logic is implemented
                     rFica.setText("FICA (SS + Medicare): " + cf.format(result.fica()));
-                    rOther.setText("Other Deductions: —"); // cf.format(result.other()) when used
+                    rOther.setText("Other Deductions: —"); // placeholder for additional deductions
                     rNet.setText("Net Pay: " + cf.format(result.net()) + " " + result.schedule().displayName());
 
                 } catch (NumberFormatException ex) {
-                    Alert alert = new Alert(AlertType.ERROR);
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
                     alert.setTitle("Input Error");
                     alert.setHeaderText("Invalid Hourly Pay Inputs");
                     alert.setContentText("Please enter valid numeric values for hourly rate and hours worked.");
                     alert.showAndWait();
                 }
-            } else {
 
-                // --- Annual Pay Calculation ---
+            } else {
                 String salaryText = annualSalaryField.getText().trim();
                 if (salaryText.isBlank()) return;
 
                 try {
-
                     double annualSalary = Double.parseDouble(salaryText);
-
-                    model.PaySchedule schedule = weekly.isSelected() ? model.PaySchedule.WEEKLY
-                            : (biWeekly.isSelected() ? model.PaySchedule.BI_WEEKLY : model.PaySchedule.MONTHLY);
-
                     model.PayrollResult result = model.PayrollCalculator.calculateFromAnnual(annualSalary, schedule);
-
-                    NumberFormat cf = NumberFormat.getCurrencyInstance(Locale.US);
 
                     rHourly.setText("Hourly Pay: " + cf.format(result.hourlyRate()));
                     rAnnual.setText("Annual Pay (Gross): " + cf.format(result.annualPay()));
@@ -231,9 +211,9 @@ public final class PayrollCalculatorView extends VBox {
                                     ? String.format("%.0f", result.hoursInPeriod())
                                     : String.format("%.2f", result.hoursInPeriod())));
                     rGross.setText("Gross Pay: " + cf.format(result.gross()));
-                    rFed.setText("Federal: -");
+                    rFed.setText("Federal: —"); // placeholder
                     rFica.setText("FICA (SS + Medicare): " + cf.format(result.fica()));
-                    rOther.setText("Other Deductions: -"); // cf.format(result.other()) when used
+                    rOther.setText("Other Deductions: —"); // placeholder
                     rNet.setText("Net Pay: " + cf.format(result.net()) + " " + result.schedule().displayName());
 
                 } catch (NumberFormatException ex) {
@@ -246,7 +226,6 @@ public final class PayrollCalculatorView extends VBox {
             }
         });
 
-        // --- Compose page ---
         VBox page = new VBox(18, title, payTypeRow, scheduleRow, hourlyInputsRow, annualInputRow, calcBtn, resultsBox, backBtn);
         page.setAlignment(Pos.TOP_CENTER);
 
@@ -256,11 +235,10 @@ public final class PayrollCalculatorView extends VBox {
         getChildren().add(root);
     }
 
-    /** Helper to display on a Stage. */
+    /** Helper to display this view on a Stage. */
     public static void show(Stage stage, Runnable onBack) {
         PayrollCalculatorView view = new PayrollCalculatorView(onBack);
         stage.setScene(new Scene(view, 800, 600));
         stage.show();
     }
 }
-
