@@ -284,12 +284,12 @@ public class TaxTableCalculator2025 {
         } else if (grossSalary > 501500 && grossSalary <=751600){
             double baseTax = (23850 * PERCENTAGE_10) + ((96950 - 23850) * PERCENTAGE_12)
                     + ((206700 - 96950) * PERCENTAGE_22) + ((394600 - 206700) * PERCENTAGE_24)
-                    + ((501050 - 394600) * PERCENTAGE_32);
-            taxAmount = baseTax + ((grossSalary - 501050) * PERCENTAGE_35);
+                    + ((501500 - 394600) * PERCENTAGE_32);
+            taxAmount = baseTax + ((grossSalary - 501500) * PERCENTAGE_35);
         } else if (grossSalary > 751600) {
             double baseTax = (23850 * PERCENTAGE_10) + ((96950 - 23850) * PERCENTAGE_12)
                     + ((206700 - 96950) * PERCENTAGE_22) + ((394600 - 206700) * PERCENTAGE_24)
-                    + ((501050 - 394600) * PERCENTAGE_32) + ((751600 - 501050) * PERCENTAGE_35);
+                    + ((501500 - 394600) * PERCENTAGE_32) + ((751600 - 501500) * PERCENTAGE_35);
             taxAmount = baseTax + ((grossSalary - 751600) * PERCENTAGE_37);
         } // End if-else statements
     } // calculateMarriedJointlySurvivingSpouse method
