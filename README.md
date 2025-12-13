@@ -80,6 +80,11 @@ The system is structured to keep UI code (JavaFX views) separate from computatio
 
 ---
 
-## Author
+## License
+© 2025 James Stevens. All rights reserved.
 
-**James Stevens**
+This source code is provided for educational, evaluation, and portfolio review purposes.
+Permission is granted to clone and run the code locally for non-commercial review.
+
+No permission is granted to copy, modify, redistribute, or use this code in
+commercial or production systems without explicit written consent from the author.
