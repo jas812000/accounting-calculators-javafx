@@ -10,8 +10,6 @@ import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import javafx.scene.control.TextFormatter;
-
 import model.Expense;
 import model.ExpenseCategory;
 
@@ -24,129 +22,129 @@ import java.util.function.UnaryOperator;
  * Expenses entry and summary screen.
  *
  * Allows users to add categorized expense records into an in-memory table,
- * remove items, and compute a running total. This view focuses on input
+ * remove items, and view the current total. This view focuses on input
  * validation and consistent formatting rather than persistence.
  */
 public class ExpensesView extends VBox {
 
     /** In-memory expense list backing the TableView. */
-    private final ObservableList<Expense> expenses = FXCollections.observableArrayList();
+    private final ObservableList<Expense> expenses =
+            FXCollections.observableArrayList();
 
-    /** Label showing the computed total for the current session. */
+    /** Label showing the current total for the session. */
     private final Label totalLabel = new Label("Total: $0.00");
 
     /**
      * Constructs the expenses screen.
      *
-     * @param onBack            callback to return to main menu
-     * @param onShowCalculating callback to show a "calculating" popup (optional UX cue)
+     * @param onBack callback to return to the main menu
      */
-    public ExpensesView(Runnable onBack, Runnable onShowCalculating) {
-
-        // --- Layout scaffold ---
+    public ExpensesView(Runnable onBack) {
         setSpacing(18);
         setPadding(new Insets(32));
         setAlignment(Pos.TOP_CENTER);
 
-        // --- Title ---
         Label title = new Label("Expenses Calculator");
-        title.setStyle("-fx-font-size: 28px; -fx-font-weight: bold; -fx-font-family: 'Arial';");
+        title.setStyle(
+                "-fx-font-size: 28px; " +
+                        "-fx-font-weight: bold; " +
+                        "-fx-font-family: 'Arial';"
+        );
 
-        // --- Inputs: category, description, amount, optional due date ---
         ComboBox<ExpenseCategory> categoryDropdown = new ComboBox<>();
         categoryDropdown.getItems().addAll(ExpenseCategory.values());
         categoryDropdown.setPromptText("Select expense category");
 
         TextField descriptionInput = new TextField();
-        descriptionInput.setPromptText("Expense description");
+        descriptionInput.setPromptText("Expense description (optional)");
 
         TextField amountInput = new TextField();
         amountInput.setPromptText("Amount");
-
-        // Constrain amount field size to prevent layout stretching.
         amountInput.setPrefColumnCount(12);
         amountInput.setPrefWidth(200);
         amountInput.setMaxWidth(200);
         HBox.setHgrow(amountInput, Priority.NEVER);
 
-        // Input filter: numbers with optional decimal, max 2 decimal places.
         UnaryOperator<TextFormatter.Change> amountFilter = change -> {
             String newText = change.getControlNewText();
-            if (newText.isEmpty()) return change;                  // allow clearing
-            if (!newText.matches("\\d*(\\.\\d*)?")) return null;   // digits + optional single dot
+
+            if (newText.isEmpty()) {
+                return change;
+            }
+
+            if (!newText.matches("\\d*(\\.\\d*)?")) {
+                return null;
+            }
+
             int dot = newText.indexOf('.');
-            if (dot >= 0 && newText.length() - dot - 1 > 2) return null; // max 2 decimals
+            if (dot >= 0 && newText.length() - dot - 1 > 2) {
+                return null;
+            }
+
             return change;
         };
+
         amountInput.setTextFormatter(new TextFormatter<>(amountFilter));
 
         DatePicker dueDatePicker = new DatePicker();
         dueDatePicker.setPromptText("Due date (optional)");
 
-        // --- Add Expense button ---
         Button addBtn = new Button("Add expense");
         addBtn.setMinWidth(140);
         addBtn.setPrefWidth(140);
 
-        // Disable add button until a category is selected and amount is a valid money value.
         addBtn.disableProperty().bind(
-                categoryDropdown.getSelectionModel().selectedItemProperty().isNull()
+                categoryDropdown.getSelectionModel()
+                        .selectedItemProperty()
+                        .isNull()
                         .or(Bindings.createBooleanBinding(
                                 () -> {
-                                    String t = amountInput.getText();
-                                    return t == null || t.isBlank() || !t.matches("\\d+(\\.\\d{1,2})?");
+                                    String text = amountInput.getText();
+
+                                    return text == null
+                                            || text.isBlank()
+                                            || !text.matches("\\d+(\\.\\d{1,2})?");
                                 },
                                 amountInput.textProperty()
                         ))
         );
 
-        addBtn.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold;");
+        addBtn.setStyle(
+                "-fx-background-color: #4CAF50; " +
+                        "-fx-text-fill: white; " +
+                        "-fx-font-weight: bold;"
+        );
 
-        // Adds a new expense to the table after parsing + validation.
-        addBtn.setOnAction(e -> {
-            String desc = descriptionInput.getText().trim();
-            String amtText = amountInput.getText().trim();
-            if (desc.isEmpty() || amtText.isEmpty()) return;
+        addBtn.setOnAction(event -> {
+            String description = descriptionInput.getText();
+            String amountText = amountInput.getText().trim();
 
             try {
-                double amt = Double.parseDouble(amtText);
+                double amount = Double.parseDouble(amountText);
 
-                // Enforce positive amounts (zero/negative entries are invalid).
-                if (amt <= 0) {
-                    Alert alert = new Alert(Alert.AlertType.ERROR);
-                    alert.setTitle("Invalid Amount");
-                    alert.setHeaderText(null);
-                    alert.setContentText("Please enter a positive amount greater than zero.");
-                    alert.showAndWait();
-                    return;
-                }
-
-                expenses.add(new Expense(
+                Expense expense = new Expense(
                         categoryDropdown.getValue(),
-                        desc,
-                        amt,
+                        description,
+                        amount,
                         dueDatePicker.getValue()
-                ));
+                );
 
-                // Reset UI controls for next entry.
+                expenses.add(expense);
+                updateTotal();
+
                 descriptionInput.clear();
                 amountInput.clear();
                 dueDatePicker.setValue(null);
                 categoryDropdown.getSelectionModel().clearSelection();
                 categoryDropdown.requestFocus();
 
-            } catch (NumberFormatException ex) {
-                // User-facing error guidance for invalid numeric input.
+            } catch (IllegalArgumentException ex) {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setTitle("Invalid Input");
+                alert.setTitle("Invalid Expense");
                 alert.setHeaderText(null);
-                alert.setContentText("""
-                        Please enter a valid number for the amount.
-                        Examples: 1200, 1200.50, 75.25
-                        """);
+                alert.setContentText(ex.getMessage());
                 alert.showAndWait();
 
-                // Speed up correction.
                 amountInput.requestFocus();
                 amountInput.selectAll();
             }
@@ -156,65 +154,126 @@ public class ExpensesView extends VBox {
         amountRow.setAlignment(Pos.CENTER_LEFT);
         amountRow.setFillHeight(false);
 
-        VBox form = new VBox(12, categoryDropdown, descriptionInput, amountRow, dueDatePicker);
+        VBox form = new VBox(
+                12,
+                categoryDropdown,
+                descriptionInput,
+                amountRow,
+                dueDatePicker
+        );
+
         form.setAlignment(Pos.CENTER_LEFT);
         form.setMaxWidth(520);
 
-        // --- TableView setup ---
         TableView<Expense> table = new TableView<>(expenses);
         table.setPrefHeight(280);
-        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
+        table.setColumnResizePolicy(
+                TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS
+        );
 
-        TableColumn<Expense, String> catCol = new TableColumn<>("Category");
-        catCol.setCellValueFactory(c ->
+        TableColumn<Expense, String> categoryColumn =
+                new TableColumn<>("Category");
+
+        categoryColumn.setCellValueFactory(cell ->
                 new ReadOnlyStringWrapper(
-                        c.getValue().getCategory() == null ? "" : c.getValue().getCategory().toString()
+                        cell.getValue().getCategory().toString()
                 )
         );
 
-        TableColumn<Expense, String> descCol = new TableColumn<>("Description");
-        descCol.setCellValueFactory(c -> new ReadOnlyStringWrapper(c.getValue().getDescription()));
+        TableColumn<Expense, String> descriptionColumn =
+                new TableColumn<>("Description");
 
-        TableColumn<Expense, String> amtCol = new TableColumn<>("Amount");
-        amtCol.setCellValueFactory(c ->
-                new ReadOnlyStringWrapper(String.format("$%.2f", c.getValue().getAmount()))
+        descriptionColumn.setCellValueFactory(cell ->
+                new ReadOnlyStringWrapper(
+                        cell.getValue().getDescription() == null
+                                ? ""
+                                : cell.getValue().getDescription()
+                )
         );
 
-        TableColumn<Expense, String> dueCol = new TableColumn<>("Due Date");
-        dueCol.setCellValueFactory(c ->
-                new ReadOnlyStringWrapper(c.getValue().getDueDate() == null ? "" : c.getValue().getDueDate().toString())
+        TableColumn<Expense, String> amountColumn =
+                new TableColumn<>("Amount");
+
+        amountColumn.setCellValueFactory(cell ->
+                new ReadOnlyStringWrapper(
+                        String.format(
+                                Locale.US,
+                                "$%.2f",
+                                cell.getValue().getAmount()
+                        )
+                )
         );
 
-        table.getColumns().addAll(List.of(catCol, descCol, amtCol, dueCol));
+        TableColumn<Expense, String> dueDateColumn =
+                new TableColumn<>("Due Date");
 
-        // --- Actions: remove, calculate, back ---
+        dueDateColumn.setCellValueFactory(cell ->
+                new ReadOnlyStringWrapper(
+                        cell.getValue().getDueDate() == null
+                                ? ""
+                                : cell.getValue().getDueDate().toString()
+                )
+        );
+
+        table.getColumns().addAll(
+                List.of(
+                        categoryColumn,
+                        descriptionColumn,
+                        amountColumn,
+                        dueDateColumn
+                )
+        );
+
         Button removeBtn = new Button("Remove selected");
-        removeBtn.setOnAction(e -> {
-            Expense sel = table.getSelectionModel().getSelectedItem();
-            if (sel != null) expenses.remove(sel);
-        });
 
-        Button calculateBtn = new Button("Calculate");
-        calculateBtn.setOnAction(e -> {
-            NumberFormat cf = NumberFormat.getCurrencyInstance(Locale.US);
-            totalLabel.setText("Total: " + cf.format(
-                    expenses.stream()
-                            .mapToDouble(Expense::getAmount)
-                            .sum()
-            ));
+        removeBtn.setOnAction(event -> {
+            Expense selected =
+                    table.getSelectionModel().getSelectedItem();
+
+            if (selected != null) {
+                expenses.remove(selected);
+                updateTotal();
+            }
         });
 
         Button backBtn = new Button("Back to Main Menu");
-        backBtn.setOnAction(e -> { if (onBack != null) onBack.run(); });
 
-        totalLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
+        backBtn.setOnAction(event -> {
+            if (onBack != null) {
+                onBack.run();
+            }
+        });
 
-        HBox actions = new HBox(12, calculateBtn, removeBtn, totalLabel, backBtn);
+        totalLabel.setStyle(
+                "-fx-font-size: 16px; -fx-font-weight: bold;"
+        );
+
+        HBox actions = new HBox(
+                12,
+                removeBtn,
+                totalLabel,
+                backBtn
+        );
+
         actions.setAlignment(Pos.CENTER_LEFT);
 
         VBox content = new VBox(16, form, table, actions);
         content.setAlignment(Pos.TOP_CENTER);
 
         getChildren().addAll(title, content);
+    }
+
+    /** Updates the displayed total whenever the expense list changes. */
+    private void updateTotal() {
+        NumberFormat currencyFormat =
+                NumberFormat.getCurrencyInstance(Locale.US);
+
+        double total = expenses.stream()
+                .mapToDouble(Expense::getAmount)
+                .sum();
+
+        totalLabel.setText(
+                "Total: " + currencyFormat.format(total)
+        );
     }
 }

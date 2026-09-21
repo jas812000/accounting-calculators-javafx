@@ -5,10 +5,21 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Unit tests for {@link TaxTableRepository}.
+ *
+ * Verifies supported-year discovery, loading of versioned tax data,
+ * required filing-status schedules, filing-status mappings, and
+ * rejection of unsupported tax years.
+ */
 class TaxTableRepositoryTest {
 
     private final TaxTableRepository repository = new TaxTableRepository();
 
+    /**
+     * Verifies that the repository exposes every tax year listed in the
+     * bundled tax-data index.
+     */
     @Test
     void returnsSupportedTaxYearsFromIndex() {
         assertEquals(
@@ -25,6 +36,10 @@ class TaxTableRepositoryTest {
         );
     }
 
+    /**
+     * Verifies that every supported tax year can be loaded and contains
+     * at least one tax schedule.
+     */
     @Test
     void loadsEverySupportedTaxYear() {
         for (int year = 2020; year <= 2026; year++) {
@@ -36,6 +51,9 @@ class TaxTableRepositoryTest {
         }
     }
 
+    /**
+     * Verifies that the 2026 data contains all supported tax schedules.
+     */
     @Test
     void loadsExpectedTaxSchedules() {
         TaxYearData data = repository.load(2026);
@@ -47,6 +65,10 @@ class TaxTableRepositoryTest {
         assertTrue(data.schedules().containsKey("ESTATES_AND_TRUSTS"));
     }
 
+    /**
+     * Verifies that qualifying surviving spouse status maps to the
+     * married-filing-jointly tax schedule.
+     */
     @Test
     void loadsQualifyingSurvivingSpouseMapping() {
         TaxYearData data = repository.load(2026);
@@ -57,6 +79,9 @@ class TaxTableRepositoryTest {
         );
     }
 
+    /**
+     * Verifies that a tax year not present in the bundled data is rejected.
+     */
     @Test
     void rejectsUnsupportedTaxYear() {
         IllegalArgumentException exception = assertThrows(

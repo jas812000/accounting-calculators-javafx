@@ -94,10 +94,7 @@ public class WelcomeStage extends Application {
 
     /** Navigate to Expenses screen. */
     private void showExpensesScene() {
-        ExpensesView view = new ExpensesView(
-                this::showMenuScene,
-                this::showCalculatingPopup
-        );
+        ExpensesView view = new ExpensesView(this::showMenuScene);
 
         Scene scene = new Scene(view, 800, 600);
         primaryStage.setScene(scene);
@@ -106,32 +103,6 @@ public class WelcomeStage extends Application {
     /** Navigate to Exit screen (auto-terminates). */
     private void showExitScene() {
         ExitView.show(primaryStage);
-    }
-
-    /**
-     * Displays a short modal popup for feedback during longer operations.
-     * Currently used as a UI cue; the calculations are instantaneous.
-     */
-    private void showCalculatingPopup() {
-        Stage popup = new Stage();
-        popup.initModality(Modality.APPLICATION_MODAL);
-        popup.setTitle("Calculation");
-
-        Label message = new Label("Calculating...");
-        message.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
-
-        VBox layout = new VBox(20, message);
-        layout.setAlignment(Pos.CENTER);
-        layout.setPadding(new Insets(20));
-
-        Scene scene = new Scene(layout, 250, 120);
-        popup.setScene(scene);
-        popup.show();
-
-        // Auto-close after 2 seconds.
-        PauseTransition pause = new PauseTransition(Duration.seconds(2));
-        pause.setOnFinished(ev -> popup.close());
-        pause.play();
     }
 
     /** Launches the JavaFX application. */

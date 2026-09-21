@@ -6,8 +6,19 @@ import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Unit tests for {@link PayrollCalculator}.
+ *
+ * Verifies hourly and salaried payroll calculations, federal withholding,
+ * FICA, other deductions, exemptions, filing-status behavior, and
+ * validation of unsupported or invalid payroll inputs.
+ */
 class PayrollCalculatorTest {
 
+    /**
+     * Verifies that hourly payroll includes federal withholding and FICA
+     * when determining net pay.
+     */
     @Test
     void hourlyPayrollIncludesFederalWithholding() {
         PayrollResult result =
@@ -26,6 +37,10 @@ class PayrollCalculatorTest {
         assertEquals(1_690.8462, result.net(), 0.001);
     }
 
+    /**
+     * Verifies that annual salary is converted to the selected pay period
+     * and federal withholding and FICA are calculated from period wages.
+     */
     @Test
     void annualPayrollIncludesFederalWithholding() {
         PayrollResult result =
@@ -40,6 +55,10 @@ class PayrollCalculatorTest {
         assertEquals(153, result.fica(), 0.001);
     }
 
+    /**
+     * Verifies that an employee marked exempt has no federal income-tax
+     * withholding while FICA remains applicable.
+     */
     @Test
     void exemptEmployeeHasNoFederalWithholding() {
         PayrollTaxInputs taxInputs =
@@ -70,6 +89,9 @@ class PayrollCalculatorTest {
         assertEquals(153, result.fica(), 0.001);
     }
 
+    /**
+     * Verifies that other deductions reduce calculated net pay.
+     */
     @Test
     void appliesOtherDeductionsToNetPay() {
         PayrollTaxInputs taxInputs =
@@ -100,6 +122,10 @@ class PayrollCalculatorTest {
         assertEquals(1_590.8462, result.net(), 0.001);
     }
 
+    /**
+     * Verifies that qualifying surviving spouse status is accepted for
+     * payroll withholding and mapped to the applicable married schedule.
+     */
     @Test
     void qualifyingSurvivingSpouseUsesMarriedSchedule() {
         PayrollTaxInputs taxInputs =
@@ -129,6 +155,9 @@ class PayrollCalculatorTest {
         assertTrue(result.federal() >= 0);
     }
 
+    /**
+     * Verifies that an annual salary must be greater than zero.
+     */
     @Test
     void rejectsZeroAnnualSalary() {
         assertThrows(
@@ -141,6 +170,9 @@ class PayrollCalculatorTest {
         );
     }
 
+    /**
+     * Verifies that salaried payroll requires a pay schedule.
+     */
     @Test
     void rejectsNullScheduleForAnnualSalary() {
         assertThrows(
@@ -153,6 +185,9 @@ class PayrollCalculatorTest {
         );
     }
 
+    /**
+     * Verifies that the pay-date year must have bundled payroll data.
+     */
     @Test
     void rejectsUnsupportedPayDateYear() {
         PayrollTaxInputs taxInputs =
@@ -182,6 +217,11 @@ class PayrollCalculatorTest {
         );
     }
 
+    /**
+     * Creates the standard 2026 payroll-tax inputs shared by payroll tests.
+     *
+     * @return standard single-filer payroll-tax inputs
+     */
     private PayrollTaxInputs standardTaxInputs() {
         return new PayrollTaxInputs(
                 LocalDate.of(2026, 6, 12),

@@ -21,8 +21,7 @@ public enum ExpenseCategory {
     HOUSING("Housing"),
     GROCERIES("Groceries"),
     INSURANCE("Insurance"),
-    PET_CARE("Pet Care"),
-    AFFIRM("Affirm");
+    PET_CARE("Pet Care");
 
     private final String displayName;
 

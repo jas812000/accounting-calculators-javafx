@@ -5,10 +5,19 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+/**
+ * Unit tests for {@link TaxCalculator}.
+ *
+ * Verifies progressive federal income-tax calculations across brackets,
+ * filing statuses and tax years, along with input validation and result data.
+ */
 class TaxCalculatorTest {
 
     private static final double DELTA = 0.01;
 
+    /**
+     * Verifies that zero taxable income produces zero federal income tax.
+     */
     @Test
     void calculatesZeroTaxForZeroIncome() {
         assertEquals(
@@ -22,6 +31,9 @@ class TaxCalculatorTest {
         );
     }
 
+    /**
+     * Verifies tax calculation for income entirely within the first bracket.
+     */
     @Test
     void calculatesTaxWithinFirstBracket() {
         assertEquals(
@@ -35,6 +47,9 @@ class TaxCalculatorTest {
         );
     }
 
+    /**
+     * Verifies tax calculation exactly at the first-bracket boundary.
+     */
     @Test
     void calculatesTaxAtFirstBracketBoundary() {
         assertEquals(
@@ -48,6 +63,9 @@ class TaxCalculatorTest {
         );
     }
 
+    /**
+     * Verifies progressive taxation when taxable income spans multiple brackets.
+     */
     @Test
     void calculatesProgressiveTaxAcrossMultipleBrackets() {
         double expected =
@@ -66,6 +84,10 @@ class TaxCalculatorTest {
         );
     }
 
+    /**
+     * Verifies that qualifying surviving spouse status uses the
+     * married-filing-jointly tax schedule.
+     */
     @Test
     void qualifyingSurvivingSpouseUsesMarriedFilingJointlySchedule() {
         double taxableIncome = 100_000.0;
@@ -89,6 +111,10 @@ class TaxCalculatorTest {
         );
     }
 
+    /**
+     * Verifies that estates and trusts use the 37 percent top bracket
+     * when taxable income exceeds the applicable threshold.
+     */
     @Test
     void estatesAndTrustsUseTopThirtySevenPercentBracket() {
         double expected =
@@ -108,6 +134,10 @@ class TaxCalculatorTest {
         );
     }
 
+    /**
+     * Verifies that the calculator uses the bracket data for the requested
+     * tax year rather than a single hard-coded schedule.
+     */
     @Test
     void calculatesUsingDifferentTaxYears() {
         double income = 50_000.0;
@@ -137,6 +167,10 @@ class TaxCalculatorTest {
         assertEquals(expected2026, tax2026, DELTA);
     }
 
+    /**
+     * Verifies that the high-level calculation returns the expected
+     * tax year, filing status, taxable income, and federal tax.
+     */
     @Test
     void calculateReturnsExpectedResultData() {
         TaxInputs inputs = new TaxInputs(
@@ -153,6 +187,9 @@ class TaxCalculatorTest {
         assertEquals(1_000.0, result.federalTax(), DELTA);
     }
 
+    /**
+     * Verifies that negative taxable income is rejected.
+     */
     @Test
     void rejectsNegativeTaxableIncome() {
         assertThrows(
@@ -165,6 +202,9 @@ class TaxCalculatorTest {
         );
     }
 
+    /**
+     * Verifies that a filing status is required.
+     */
     @Test
     void rejectsNullFilingStatus() {
         assertThrows(
@@ -177,6 +217,9 @@ class TaxCalculatorTest {
         );
     }
 
+    /**
+     * Verifies that tax calculations reject years without bundled tax data.
+     */
     @Test
     void rejectsUnsupportedTaxYear() {
         assertThrows(
@@ -189,6 +232,9 @@ class TaxCalculatorTest {
         );
     }
 
+    /**
+     * Verifies that the high-level calculator rejects a null input object.
+     */
     @Test
     void rejectsNullInputs() {
         assertThrows(
