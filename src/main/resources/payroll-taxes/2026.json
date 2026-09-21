@@ -1,0 +1,8 @@
+{
+  "taxYear": 2026,
+  "socialSecurityRate": 0.062,
+  "socialSecurityWageBase": 184500.00,
+  "medicareRate": 0.0145,
+  "additionalMedicareRate": 0.009,
+  "additionalMedicareThreshold": 200000.00
+}

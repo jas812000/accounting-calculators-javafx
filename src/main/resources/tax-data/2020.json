@@ -1,0 +1,178 @@
+{
+  "taxYear": 2020,
+  "schedules": {
+    "SINGLE": [
+      {
+        "minimum": 0,
+        "maximum": 9875,
+        "rate": 0.1
+      },
+      {
+        "minimum": 9875,
+        "maximum": 40125,
+        "rate": 0.12
+      },
+      {
+        "minimum": 40125,
+        "maximum": 85525,
+        "rate": 0.22
+      },
+      {
+        "minimum": 85525,
+        "maximum": 163300,
+        "rate": 0.24
+      },
+      {
+        "minimum": 163300,
+        "maximum": 207350,
+        "rate": 0.32
+      },
+      {
+        "minimum": 207350,
+        "maximum": 518400,
+        "rate": 0.35
+      },
+      {
+        "minimum": 518400,
+        "maximum": null,
+        "rate": 0.37
+      }
+    ],
+    "MARRIED_FILING_JOINTLY": [
+      {
+        "minimum": 0,
+        "maximum": 19750,
+        "rate": 0.1
+      },
+      {
+        "minimum": 19750,
+        "maximum": 80250,
+        "rate": 0.12
+      },
+      {
+        "minimum": 80250,
+        "maximum": 171050,
+        "rate": 0.22
+      },
+      {
+        "minimum": 171050,
+        "maximum": 326600,
+        "rate": 0.24
+      },
+      {
+        "minimum": 326600,
+        "maximum": 414700,
+        "rate": 0.32
+      },
+      {
+        "minimum": 414700,
+        "maximum": 622050,
+        "rate": 0.35
+      },
+      {
+        "minimum": 622050,
+        "maximum": null,
+        "rate": 0.37
+      }
+    ],
+    "MARRIED_FILING_SEPARATELY": [
+      {
+        "minimum": 0,
+        "maximum": 9875,
+        "rate": 0.1
+      },
+      {
+        "minimum": 9875,
+        "maximum": 40125,
+        "rate": 0.12
+      },
+      {
+        "minimum": 40125,
+        "maximum": 85525,
+        "rate": 0.22
+      },
+      {
+        "minimum": 85525,
+        "maximum": 163300,
+        "rate": 0.24
+      },
+      {
+        "minimum": 163300,
+        "maximum": 207350,
+        "rate": 0.32
+      },
+      {
+        "minimum": 207350,
+        "maximum": 311025,
+        "rate": 0.35
+      },
+      {
+        "minimum": 311025,
+        "maximum": null,
+        "rate": 0.37
+      }
+    ],
+    "HEAD_OF_HOUSEHOLD": [
+      {
+        "minimum": 0,
+        "maximum": 14100,
+        "rate": 0.1
+      },
+      {
+        "minimum": 14100,
+        "maximum": 53700,
+        "rate": 0.12
+      },
+      {
+        "minimum": 53700,
+        "maximum": 85500,
+        "rate": 0.22
+      },
+      {
+        "minimum": 85500,
+        "maximum": 163300,
+        "rate": 0.24
+      },
+      {
+        "minimum": 163300,
+        "maximum": 207350,
+        "rate": 0.32
+      },
+      {
+        "minimum": 207350,
+        "maximum": 518400,
+        "rate": 0.35
+      },
+      {
+        "minimum": 518400,
+        "maximum": null,
+        "rate": 0.37
+      }
+    ],
+    "ESTATES_AND_TRUSTS": [
+      {
+        "minimum": 0,
+        "maximum": 2600,
+        "rate": 0.1
+      },
+      {
+        "minimum": 2600,
+        "maximum": 9450,
+        "rate": 0.24
+      },
+      {
+        "minimum": 9450,
+        "maximum": 12950,
+        "rate": 0.35
+      },
+      {
+        "minimum": 12950,
+        "maximum": null,
+        "rate": 0.37
+      }
+    ]
+  },
+  "filingStatusMappings": {
+    "QUALIFYING_SURVIVING_SPOUSE": "MARRIED_FILING_JOINTLY"
+  }
+}
