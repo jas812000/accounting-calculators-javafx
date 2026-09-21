@@ -1,0 +1,92 @@
+{
+  "taxYear": 2026,
+  "payPeriodsPerYear": {
+    "WEEKLY": 52,
+    "BI_WEEKLY": 26,
+    "MONTHLY": 12
+  },
+  "standardSchedules": {
+    "MARRIED_FILING_JOINTLY": [
+      {"minimum":0,"maximum":19300,"baseWithholding":0,"rate":0},
+      {"minimum":19300,"maximum":44100,"baseWithholding":0,"rate":0.10},
+      {"minimum":44100,"maximum":120100,"baseWithholding":2480,"rate":0.12},
+      {"minimum":120100,"maximum":230700,"baseWithholding":11600,"rate":0.22},
+      {"minimum":230700,"maximum":422850,"baseWithholding":35932,"rate":0.24},
+      {"minimum":422850,"maximum":531750,"baseWithholding":82048,"rate":0.32},
+      {"minimum":531750,"maximum":788000,"baseWithholding":116896,"rate":0.35},
+      {"minimum":788000,"maximum":null,"baseWithholding":206583.50,"rate":0.37}
+    ],
+    "SINGLE": [
+      {"minimum":0,"maximum":7500,"baseWithholding":0,"rate":0},
+      {"minimum":7500,"maximum":19900,"baseWithholding":0,"rate":0.10},
+      {"minimum":19900,"maximum":57900,"baseWithholding":1240,"rate":0.12},
+      {"minimum":57900,"maximum":113200,"baseWithholding":5800,"rate":0.22},
+      {"minimum":113200,"maximum":209275,"baseWithholding":17966,"rate":0.24},
+      {"minimum":209275,"maximum":263725,"baseWithholding":41024,"rate":0.32},
+      {"minimum":263725,"maximum":648100,"baseWithholding":58448,"rate":0.35},
+      {"minimum":648100,"maximum":null,"baseWithholding":192979.25,"rate":0.37}
+    ],
+    "MARRIED_FILING_SEPARATELY": [
+      {"minimum":0,"maximum":7500,"baseWithholding":0,"rate":0},
+      {"minimum":7500,"maximum":19900,"baseWithholding":0,"rate":0.10},
+      {"minimum":19900,"maximum":57900,"baseWithholding":1240,"rate":0.12},
+      {"minimum":57900,"maximum":113200,"baseWithholding":5800,"rate":0.22},
+      {"minimum":113200,"maximum":209275,"baseWithholding":17966,"rate":0.24},
+      {"minimum":209275,"maximum":263725,"baseWithholding":41024,"rate":0.32},
+      {"minimum":263725,"maximum":648100,"baseWithholding":58448,"rate":0.35},
+      {"minimum":648100,"maximum":null,"baseWithholding":192979.25,"rate":0.37}
+    ],
+    "HEAD_OF_HOUSEHOLD": [
+      {"minimum":0,"maximum":15550,"baseWithholding":0,"rate":0},
+      {"minimum":15550,"maximum":33250,"baseWithholding":0,"rate":0.10},
+      {"minimum":33250,"maximum":83000,"baseWithholding":1770,"rate":0.12},
+      {"minimum":83000,"maximum":121250,"baseWithholding":7740,"rate":0.22},
+      {"minimum":121250,"maximum":217300,"baseWithholding":16155,"rate":0.24},
+      {"minimum":217300,"maximum":271750,"baseWithholding":39207,"rate":0.32},
+      {"minimum":271750,"maximum":656150,"baseWithholding":56631,"rate":0.35},
+      {"minimum":656150,"maximum":null,"baseWithholding":191171,"rate":0.37}
+    ]
+  },
+  "step2Schedules": {
+    "MARRIED_FILING_JOINTLY": [
+      {"minimum":0,"maximum":16100,"baseWithholding":0,"rate":0},
+      {"minimum":16100,"maximum":28500,"baseWithholding":0,"rate":0.10},
+      {"minimum":28500,"maximum":66500,"baseWithholding":1240,"rate":0.12},
+      {"minimum":66500,"maximum":121800,"baseWithholding":5800,"rate":0.22},
+      {"minimum":121800,"maximum":217875,"baseWithholding":17966,"rate":0.24},
+      {"minimum":217875,"maximum":272325,"baseWithholding":41024,"rate":0.32},
+      {"minimum":272325,"maximum":400450,"baseWithholding":58448,"rate":0.35},
+      {"minimum":400450,"maximum":null,"baseWithholding":103291.75,"rate":0.37}
+    ],
+    "SINGLE": [
+      {"minimum":0,"maximum":8050,"baseWithholding":0,"rate":0},
+      {"minimum":8050,"maximum":14250,"baseWithholding":0,"rate":0.10},
+      {"minimum":14250,"maximum":33250,"baseWithholding":620,"rate":0.12},
+      {"minimum":33250,"maximum":60900,"baseWithholding":2900,"rate":0.22},
+      {"minimum":60900,"maximum":108938,"baseWithholding":8983,"rate":0.24},
+      {"minimum":108938,"maximum":136163,"baseWithholding":20512,"rate":0.32},
+      {"minimum":136163,"maximum":328350,"baseWithholding":29224,"rate":0.35},
+      {"minimum":328350,"maximum":null,"baseWithholding":96489.63,"rate":0.37}
+    ],
+    "MARRIED_FILING_SEPARATELY": [
+      {"minimum":0,"maximum":8050,"baseWithholding":0,"rate":0},
+      {"minimum":8050,"maximum":14250,"baseWithholding":0,"rate":0.10},
+      {"minimum":14250,"maximum":33250,"baseWithholding":620,"rate":0.12},
+      {"minimum":33250,"maximum":60900,"baseWithholding":2900,"rate":0.22},
+      {"minimum":60900,"maximum":108938,"baseWithholding":8983,"rate":0.24},
+      {"minimum":108938,"maximum":136163,"baseWithholding":20512,"rate":0.32},
+      {"minimum":136163,"maximum":328350,"baseWithholding":29224,"rate":0.35},
+      {"minimum":328350,"maximum":null,"baseWithholding":96489.63,"rate":0.37}
+    ],
+    "HEAD_OF_HOUSEHOLD": [
+      {"minimum":0,"maximum":12075,"baseWithholding":0,"rate":0},
+      {"minimum":12075,"maximum":20925,"baseWithholding":0,"rate":0.10},
+      {"minimum":20925,"maximum":45800,"baseWithholding":885,"rate":0.12},
+      {"minimum":45800,"maximum":64925,"baseWithholding":3870,"rate":0.22},
+      {"minimum":64925,"maximum":112950,"baseWithholding":8077.50,"rate":0.24},
+      {"minimum":112950,"maximum":140175,"baseWithholding":19603.50,"rate":0.32},
+      {"minimum":140175,"maximum":332375,"baseWithholding":28315.50,"rate":0.35},
+      {"minimum":332375,"maximum":null,"baseWithholding":95585.50,"rate":0.37}
+    ]
+  }
+}

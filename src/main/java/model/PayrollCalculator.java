@@ -1,57 +1,77 @@
 package model;
 
 /**
- * Stateless payroll calculations.
+ * Stateless payroll calculations for hourly and salaried employees.
  *
- * Produces derived payroll values from either hourly inputs (rate + hours)
- * or annual salary inputs, applying a simplified FICA deduction.
+ * Gross pay is calculated from the employee's compensation inputs.
+ * Federal income tax withholding is calculated using IRS Publication 15-T
+ * data selected from the employee's pay date.
  *
- * Notes / simplifications:
- * - FICA is modeled as a flat rate (SS + Medicare) and does not include
- *   the SS wage base cap or additional Medicare thresholds.
- * - Federal withholding and other deductions are placeholders.
+ * Employee FICA withholding applies Social Security, Medicare, and
+ * Additional Medicare rules using wages already paid during the calendar year.
  */
 public final class PayrollCalculator {
 
-    // Employee FICA rate (Social Security 6.2% + Medicare 1.45%) – simplified
-    private static final double FICA_RATE = 0.0765;
+    private static final FederalWithholdingCalculator
+            FEDERAL_WITHHOLDING_CALCULATOR =
+            new FederalWithholdingCalculator();
 
     private PayrollCalculator() {}
 
     /**
-     * Calculates payroll for hourly employees for a single pay period.
-     *
-     * @param in hourly payroll inputs (validated by the record constructor)
-     * @return computed payroll result for the period
+     * Calculates payroll for an hourly employee for one pay period.
      */
-    public static PayrollResult calculateFromHourly(PayrollInputs in) {
-        double gross   = gross(in.hourlyRate(), in.hoursInPeriod());
-        double fica    = fica(gross);
-        double federal = 0.0; // TODO: implement real withholding logic
-        double other   = 0.0; // TODO: support user-defined deductions
-        double net     = gross - fica - federal - other;
+    public static PayrollResult calculateFromHourly(
+            PayrollInputs payrollInputs,
+            PayrollTaxInputs taxInputs
+    ) {
+        if (payrollInputs == null) {
+            throw new IllegalArgumentException(
+                    "payrollInputs are required"
+            );
+        }
 
-        return new PayrollResult(
-                in.hourlyRate(),
-                in.hoursInPeriod(),
-                in.schedule(),
-                gross, federal, fica, other, net
+        validateTaxInputs(taxInputs);
+
+        double gross = gross(
+                payrollInputs.hourlyRate(),
+                payrollInputs.hoursInPeriod()
+        );
+
+        return buildResult(
+                payrollInputs.hourlyRate(),
+                payrollInputs.hoursInPeriod(),
+                payrollInputs.schedule(),
+                gross,
+                taxInputs
         );
     }
 
     /**
-     * Calculates payroll from an annual salary by converting to per-period gross pay.
-     *
-     * @param annualSalary annual salary (gross)
-     * @param schedule pay schedule to convert salary to pay-period gross
-     * @return computed payroll result for the selected schedule
+     * Calculates payroll for a salaried employee for one pay period.
      */
-    public static PayrollResult calculateFromAnnual(double annualSalary, PaySchedule schedule) {
+    public static PayrollResult calculateFromAnnual(
+            double annualSalary,
+            PaySchedule schedule,
+            PayrollTaxInputs taxInputs
+    ) {
+        if (annualSalary <= 0) {
+            throw new IllegalArgumentException(
+                    "annualSalary must be > 0"
+            );
+        }
+
+        if (schedule == null) {
+            throw new IllegalArgumentException(
+                    "schedule is required"
+            );
+        }
+
+        validateTaxInputs(taxInputs);
+
         double gross;
         double hoursInPeriod;
-        double hourlyRate;
 
-        // Convert annual salary to gross pay per schedule.
         switch (schedule) {
             case WEEKLY -> {
                 gross = annualSalary / 52.0;
@@ -63,33 +83,116 @@ public final class PayrollCalculator {
             }
             case MONTHLY -> {
                 gross = annualSalary / 12.0;
-                hoursInPeriod = 173.33; // Approx 2080 / 12
+                hoursInPeriod = 2080.0 / 12.0;
             }
-            default -> throw new IllegalStateException("Unexpected schedule: " + schedule);
+            default -> throw new IllegalStateException(
+                    "Unexpected schedule: " + schedule
+            );
         }
 
-        // Convert annual salary to approximate hourly rate using standard 2080-hour year.
-        hourlyRate = annualSalary / 2080.0;
+        double hourlyRate = annualSalary / 2080.0;
 
-        double fica    = fica(gross);
-        double federal = 0.0; // TODO: implement real withholding logic
-        double other   = 0.0; // TODO: user-defined deductions
-        double net     = gross - fica - federal - other;
-
-        return new PayrollResult(
-                hourlyRate, hoursInPeriod,
-                schedule, gross, federal,
-                fica, other, net
+        return buildResult(
+                hourlyRate,
+                hoursInPeriod,
+                schedule,
+                gross,
+                taxInputs
         );
     }
 
-    /** Gross pay is the base computation for hourly wages. */
-    public static double gross(double hourlyRate, double hoursInPeriod) {
+    /**
+     * Calculates gross hourly wages.
+     */
+    public static double gross(
+            double hourlyRate,
+            double hoursInPeriod
+    ) {
+        if (hourlyRate <= 0) {
+            throw new IllegalArgumentException(
+                    "hourlyRate must be > 0"
+            );
+        }
+
+        if (hoursInPeriod < 0) {
+            throw new IllegalArgumentException(
+                    "hoursInPeriod must be >= 0"
+            );
+        }
+
         return hourlyRate * hoursInPeriod;
     }
 
-    /** Simplified FICA calculation. */
-    public static double fica(double gross) {
-        return gross * FICA_RATE;
+    private static PayrollResult buildResult(
+            double hourlyRate,
+            double hoursInPeriod,
+            PaySchedule schedule,
+            double gross,
+            PayrollTaxInputs taxInputs
+    ) {
+        double federal = taxInputs.exemptFromFederalWithholding()
+                ? 0
+                : calculateFederalWithholding(
+                        gross,
+                        schedule,
+                        taxInputs
+                );
+
+        FicaResult ficaResult =
+                FicaCalculator.calculate(
+                        gross,
+                        taxInputs.yearToDateWages(),
+                        taxInputs.payDate().getYear()
+                );
+
+        double fica = ficaResult.total();
+        double other = taxInputs.otherDeductions();
+
+        double net =
+                gross - federal - fica - other;
+
+        return new PayrollResult(
+                hourlyRate,
+                hoursInPeriod,
+                schedule,
+                gross,
+                federal,
+                fica,
+                other,
+                net
+        );
+    }
+
+    private static double calculateFederalWithholding(
+            double taxableWages,
+            PaySchedule schedule,
+            PayrollTaxInputs taxInputs
+    ) {
+        PayrollWithholdingInputs withholdingInputs =
+                new PayrollWithholdingInputs(
+                        taxInputs.payDate(),
+                        taxInputs.filingStatus(),
+                        taxInputs.step2Checked(),
+                        taxableWages,
+                        schedule,
+                        taxInputs.step3Credits(),
+                        taxInputs.step4aOtherIncome(),
+                        taxInputs.step4bDeductions(),
+                        taxInputs.step4cAdditionalWithholding()
+                );
+
+        return FEDERAL_WITHHOLDING_CALCULATOR
+                .calculate(withholdingInputs)
+                .federalWithholding();
+    }
+
+    private static void validateTaxInputs(
+            PayrollTaxInputs taxInputs
+    ) {
+        if (taxInputs == null) {
+            throw new IllegalArgumentException(
+                    "taxInputs are required"
+            );
+        }
     }
 }

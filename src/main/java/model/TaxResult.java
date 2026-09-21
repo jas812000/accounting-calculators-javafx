@@ -1,21 +1,17 @@
 package model;
 
 /**
- * Output values from tax computation.
+ * Result of an annual federal income tax calculation.
  *
- * Includes:
- * - gross input amount
- * - computed FICA (simplified)
- * - computed federal tax (table-based)
- * - net amount after deductions
+ * @param year tax year
+ * @param status filing status
+ * @param taxableIncome taxable income used for the calculation
+ * @param federalTax calculated federal income tax
  */
 public record TaxResult(
         int year,
         FilingStatus status,
-        double gross,
-        double fica,
-        double federal,
-        double net
+        double taxableIncome,
+        double federalTax
 ) {
-    // Record provides immutable storage; behavior can be added later if needed.
 }

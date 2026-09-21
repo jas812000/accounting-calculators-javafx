@@ -1,54 +1,124 @@
 package model;
 
-import TaxTables.TaxTableCalculator2025;
+import repository.TaxTableRepository;
+
+import java.util.List;
+import java.util.Map;
 
 /**
- * Stateless tax calculations.
- *
- * Produces FICA, federal tax, and net amounts from gross pay.
- *
- * Notes / simplifications:
- * - FICA is modeled as a flat rate and does not enforce the SS wage base cap
- *   or additional Medicare thresholds.
- * - Federal tax uses year-specific tax tables; currently implemented for 2025.
+ * Calculates annual federal income tax using progressive tax schedules
+ * loaded from bundled year-specific JSON resources.
  */
 public final class TaxCalculator {
-    private static final double FICA_RATE = 0.0765; // 6.2% + 1.45% (simplified)
 
-    private TaxCalculator() {}
+    private static final TaxTableRepository TAX_TABLE_REPOSITORY =
+            new TaxTableRepository();
+
+    private TaxCalculator() {
+    }
 
     /**
-     * Computes tax outputs for the provided input.
+     * Calculates annual federal income tax for the supplied inputs.
      *
-     * @param in tax inputs (year, status, gross)
-     * @return TaxResult including fica, federal, and net
+     * @param inputs tax year, filing status, and taxable income
+     * @return calculated federal income tax result
      */
-    public static TaxResult calculate(TaxInputs in) {
-        double fica    = fica(in.gross());
-        double federal = federal(in.year(), in.status(), in.gross());
-        double net     = in.gross() - fica - federal;
+    public static TaxResult calculate(TaxInputs inputs) {
+        if (inputs == null) {
+            throw new IllegalArgumentException("inputs are required");
+        }
 
-        return new TaxResult(in.year(), in.status(), in.gross(), fica, federal, net);
-    }
+        double federalTax = federal(
+                inputs.year(),
+                inputs.status(),
+                inputs.taxableIncome()
+        );
 
-    /** Simplified employee FICA. */
-    public static double fica(double gross) {
-        return gross * FICA_RATE;
+        return new TaxResult(
+                inputs.year(),
+                inputs.status(),
+                inputs.taxableIncome(),
+                federalTax
+        );
     }
 
     /**
-     * Federal tax computation via year-specific tables.
+     * Calculates federal income tax using the progressive schedule for
+     * the requested year and filing status.
      *
      * @param year tax year
      * @param status filing status
-     * @param gross gross income used as taxable base in this simplified model
-     * @return computed federal tax, or 0 if the year is unsupported
+     * @param taxableIncome taxable income
+     * @return calculated federal income tax
      */
-    public static double federal(int year, FilingStatus status, double gross) {
-        if (year == 2025) {
-            return new TaxTableCalculator2025(status, gross).calculateTax();
+    public static double federal(
+            int year,
+            FilingStatus status,
+            double taxableIncome
+    ) {
+        if (status == null) {
+            throw new IllegalArgumentException("status is required");
         }
-        // Unsupported tax years return 0 to avoid misleading partial calculations.
-        return 0.0;
+
+        if (taxableIncome < 0) {
+            throw new IllegalArgumentException(
+                    "taxableIncome must be >= 0"
+            );
+        }
+
+        TaxYearData taxYearData = TAX_TABLE_REPOSITORY.load(year);
+        String scheduleName = resolveScheduleName(taxYearData, status);
+
+        List<TaxBracket> brackets =
+                taxYearData.schedules().get(scheduleName);
+
+        if (brackets == null || brackets.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "No tax schedule found for filing status: " + status
+            );
+        }
+
+        return calculateProgressiveTax(taxableIncome, brackets);
+    }
+
+    private static String resolveScheduleName(
+            TaxYearData taxYearData,
+            FilingStatus status
+    ) {
+        String statusName = status.name();
+        Map<String, String> mappings =
+                taxYearData.filingStatusMappings();
+
+        return mappings.getOrDefault(statusName, statusName);
+    }
+
+    private static double calculateProgressiveTax(
+            double taxableIncome,
+            List<TaxBracket> brackets
+    ) {
+        double tax = 0.0;
+
+        for (TaxBracket bracket : brackets) {
+            if (taxableIncome <= bracket.minimum()) {
+                break;
+            }
+
+            double upperBound = bracket.maximum() == null
+                    ? taxableIncome
+                    : Math.min(taxableIncome, bracket.maximum());
+
+            double taxableAmount = upperBound - bracket.minimum();
+
+            if (taxableAmount > 0) {
+                tax += taxableAmount * bracket.rate();
+            }
+
+            if (bracket.maximum() == null
+                    || taxableIncome <= bracket.maximum()) {
+                break;
+            }
+        }
+
+        return tax;
     }
 }

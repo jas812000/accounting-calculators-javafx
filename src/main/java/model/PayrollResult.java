@@ -3,8 +3,8 @@ package model;
 /**
  * Output values produced by payroll calculations for a pay period.
  *
- * Federal and "other" deductions are included for forward compatibility,
- * even if currently implemented as placeholders in the calculator.
+ * Includes gross pay, federal income tax withholding, employee FICA
+ * withholding, other deductions, and resulting net pay.
  */
 public record PayrollResult(
         double hourlyRate,
