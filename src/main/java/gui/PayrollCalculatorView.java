@@ -21,24 +21,25 @@ import java.util.function.UnaryOperator;
 /**
  * Payroll calculator screen.
  *
- * Supports hourly and salaried payroll calculations with federal income tax
- * withholding based on a 2020-or-later Form W-4 and IRS Publication 15-T.
- *
- * The pay date determines which bundled withholding year is used.
+ * <p>Supports hourly and salaried payroll calculations with federal
+ * income tax withholding based on a modern Form W-4 and the bundled
+ * withholding rules. The pay date determines which supported
+ * withholding year is used.</p>
  */
 public final class PayrollCalculatorView extends VBox {
 
+    /**
+     * Constructs the payroll calculator screen.
+     *
+     * @param onBack callback used to return to the main menu
+     */
     public PayrollCalculatorView(Runnable onBack) {
-        setSpacing(18);
-        setPadding(new Insets(32));
+        setSpacing(24);
+        setPadding(new Insets(40));
         setAlignment(Pos.TOP_CENTER);
 
         Label title = new Label("Payroll Calculator");
-        title.setStyle(
-                "-fx-font-size: 28px; "
-                        + "-fx-font-weight: bold; "
-                        + "-fx-font-family: 'Arial';"
-        );
+        title.getStyleClass().add("app-title");
 
         // --- Pay type ---
 
@@ -51,7 +52,7 @@ public final class PayrollCalculatorView extends VBox {
         hourlyRadio.setSelected(true);
 
         HBox payTypeRow =
-                new HBox(16, hourlyRadio, annualRadio);
+                new HBox(28, hourlyRadio, annualRadio);
         payTypeRow.setAlignment(Pos.CENTER);
 
         // --- Pay schedule ---
@@ -59,6 +60,8 @@ public final class PayrollCalculatorView extends VBox {
         ComboBox<PaySchedule> scheduleDropdown = new ComboBox<>();
         scheduleDropdown.getItems().addAll(PaySchedule.values());
         scheduleDropdown.setValue(PaySchedule.BI_WEEKLY);
+        scheduleDropdown.setPrefWidth(280);
+
         scheduleDropdown.setConverter(
                 new javafx.util.StringConverter<>() {
                     @Override
@@ -77,7 +80,7 @@ public final class PayrollCalculatorView extends VBox {
 
         HBox scheduleRow =
                 new HBox(
-                        12,
+                        16,
                         new Label("Pay schedule:"),
                         scheduleDropdown
                 );
@@ -94,20 +97,21 @@ public final class PayrollCalculatorView extends VBox {
         );
 
         HBox hourlyInputsRow =
-                new HBox(12, hourlyRate, hoursInPeriod);
+                new HBox(16, hourlyRate, hoursInPeriod);
         hourlyInputsRow.setAlignment(Pos.CENTER);
 
         HBox annualInputRow =
-                new HBox(12, annualSalaryField);
+                new HBox(16, annualSalaryField);
         annualInputRow.setAlignment(Pos.CENTER);
 
         // --- Payroll / Form W-4 inputs ---
 
         Label taxHeader =
                 new Label("Federal Withholding Information");
-        taxHeader.setStyle("-fx-font-weight: bold;");
+        taxHeader.getStyleClass().add("section-title");
 
         DatePicker payDate = new DatePicker(LocalDate.now());
+        payDate.setPrefWidth(280);
 
         ComboBox<FilingStatus> filingStatus =
                 new ComboBox<>();
@@ -120,6 +124,7 @@ public final class PayrollCalculatorView extends VBox {
                 FilingStatus.QUALIFYING_SURVIVING_SPOUSE
         );
         filingStatus.setValue(FilingStatus.SINGLE);
+        filingStatus.setPrefWidth(280);
 
         CheckBox step2Checked = new CheckBox(
                 "W-4 Step 2: Multiple jobs / spouse works"
@@ -127,12 +132,17 @@ public final class PayrollCalculatorView extends VBox {
 
         TextField step3Credits =
                 moneyField("W-4 Step 3 credits");
+
         TextField step4aOtherIncome =
                 moneyField("W-4 Step 4(a) other income");
+
         TextField step4bDeductions =
                 moneyField("W-4 Step 4(b) deductions");
+
         TextField step4cAdditional =
-                moneyField("W-4 Step 4(c) additional withholding");
+                moneyField(
+                        "W-4 Step 4(c) additional withholding"
+                );
 
         CheckBox exemptFederal = new CheckBox(
                 "Exempt from federal income tax withholding"
@@ -145,8 +155,8 @@ public final class PayrollCalculatorView extends VBox {
                 moneyField("YTD wages before this paycheck");
 
         GridPane taxGrid = new GridPane();
-        taxGrid.setHgap(12);
-        taxGrid.setVgap(10);
+        taxGrid.setHgap(20);
+        taxGrid.setVgap(14);
         taxGrid.setAlignment(Pos.CENTER);
 
         taxGrid.add(new Label("Pay date:"), 0, 0);
@@ -160,14 +170,24 @@ public final class PayrollCalculatorView extends VBox {
         taxGrid.add(new Label("Step 3 credits:"), 0, 3);
         taxGrid.add(step3Credits, 1, 3);
 
-        taxGrid.add(new Label("Step 4(a) other income:"), 0, 4);
+        taxGrid.add(
+                new Label("Step 4(a) other income:"),
+                0,
+                4
+        );
         taxGrid.add(step4aOtherIncome, 1, 4);
 
-        taxGrid.add(new Label("Step 4(b) deductions:"), 0, 5);
+        taxGrid.add(
+                new Label("Step 4(b) deductions:"),
+                0,
+                5
+        );
         taxGrid.add(step4bDeductions, 1, 5);
 
         taxGrid.add(
-                new Label("Step 4(c) additional withholding:"),
+                new Label(
+                        "Step 4(c) additional withholding:"
+                ),
                 0,
                 6
         );
@@ -175,33 +195,40 @@ public final class PayrollCalculatorView extends VBox {
 
         taxGrid.add(exemptFederal, 0, 7, 2, 1);
 
-        taxGrid.add(new Label("Other deductions:"), 0, 8);
+        taxGrid.add(
+                new Label("Other deductions:"),
+                0,
+                8
+        );
         taxGrid.add(otherDeductions, 1, 8);
 
         taxGrid.add(
-                new Label("YTD wages before this paycheck:"),
+                new Label(
+                        "YTD wages before this paycheck:"
+                ),
                 0,
                 9
         );
         taxGrid.add(yearToDateWages, 1, 9);
 
         VBox taxBox =
-                new VBox(10, taxHeader, taxGrid);
+                new VBox(18, taxHeader, taxGrid);
         taxBox.setAlignment(Pos.CENTER);
-        taxBox.setPadding(new Insets(12));
-        taxBox.setStyle("""
-                -fx-border-color: #ccc;
-                -fx-border-radius: 8;
-                -fx-background-radius: 8;
-                """);
-        taxBox.setMaxWidth(560);
+        taxBox.setPadding(new Insets(24));
+        taxBox.setMaxWidth(720);
+        taxBox.getStyleClass().add("card");
 
         // --- Actions ---
 
         Button calcBtn = new Button("Calculate");
-        Button backBtn = new Button("Back to Main Menu");
+        calcBtn.setPrefWidth(280);
+        calcBtn.getStyleClass().add("action-button");
 
-        backBtn.setOnAction(e -> {
+        Button backBtn = new Button("Back to Main Menu");
+        backBtn.setPrefWidth(280);
+        backBtn.getStyleClass().add("secondary-button");
+
+        backBtn.setOnAction(event -> {
             if (onBack != null) {
                 onBack.run();
             }
@@ -210,7 +237,7 @@ public final class PayrollCalculatorView extends VBox {
         // --- Results ---
 
         Label resultsHeader = new Label("Results");
-        resultsHeader.setStyle("-fx-font-weight: bold;");
+        resultsHeader.getStyleClass().add("section-title");
 
         Label rHourly = new Label("Hourly Pay: —");
         Label rAnnual = new Label("Annual Pay (Gross): —");
@@ -223,9 +250,10 @@ public final class PayrollCalculatorView extends VBox {
         Label rOther =
                 new Label("Other Deductions: —");
         Label rNet = new Label("Net Pay: —");
+        rNet.getStyleClass().add("result-total");
 
         VBox resultsBox = new VBox(
-                6,
+                8,
                 resultsHeader,
                 rHourly,
                 rAnnual,
@@ -238,15 +266,9 @@ public final class PayrollCalculatorView extends VBox {
                 rOther,
                 rNet
         );
-
-        resultsBox.setPadding(new Insets(12));
-        resultsBox.setStyle("""
-                -fx-border-color: #ccc;
-                -fx-border-radius: 8;
-                -fx-background-radius: 8;
-                -fx-background-color: #fafafa;
-                """);
-        resultsBox.setMaxWidth(560);
+        resultsBox.setPadding(new Insets(24));
+        resultsBox.setMaxWidth(720);
+        resultsBox.getStyleClass().add("result-card");
 
         // --- Pay-type visibility ---
 
@@ -296,7 +318,7 @@ public final class PayrollCalculatorView extends VBox {
 
         // --- Calculate ---
 
-        calcBtn.setOnAction(e -> {
+        calcBtn.setOnAction(event -> {
             try {
                 PaySchedule schedule =
                         scheduleDropdown.getValue();
@@ -321,7 +343,8 @@ public final class PayrollCalculatorView extends VBox {
                     if (hourlyRate.getText().isBlank()
                             || hoursInPeriod.getText().isBlank()) {
                         throw new IllegalArgumentException(
-                                "Hourly rate and hours worked are required."
+                                "Hourly rate and hours worked "
+                                        + "are required."
                         );
                     }
 
@@ -364,14 +387,13 @@ public final class PayrollCalculatorView extends VBox {
                         rOther,
                         rNet
                 );
-
             } catch (IllegalArgumentException exception) {
                 showInputError(exception.getMessage());
             }
         });
 
         VBox page = new VBox(
-                18,
+                24,
                 title,
                 payTypeRow,
                 scheduleRow,
@@ -382,8 +404,8 @@ public final class PayrollCalculatorView extends VBox {
                 resultsBox,
                 backBtn
         );
-
         page.setAlignment(Pos.TOP_CENTER);
+        page.setPadding(new Insets(0, 20, 30, 20));
 
         ScrollPane scrollPane = new ScrollPane(page);
         scrollPane.setFitToWidth(true);
@@ -393,10 +415,17 @@ public final class PayrollCalculatorView extends VBox {
         VBox.setVgrow(scrollPane, Priority.ALWAYS);
     }
 
+    /**
+     * Creates a currency-entry field that accepts up to two
+     * decimal places.
+     *
+     * @param prompt prompt displayed when the field is empty
+     * @return configured currency-entry field
+     */
     private static TextField moneyField(String prompt) {
         TextField field = new TextField();
         field.setPromptText(prompt);
-        field.setPrefWidth(220);
+        field.setPrefWidth(280);
 
         UnaryOperator<TextFormatter.Change> filter = change -> {
             String text = change.getControlNewText();
@@ -424,6 +453,12 @@ public final class PayrollCalculatorView extends VBox {
         return field;
     }
 
+    /**
+     * Parses a monetary field, treating an empty field as zero.
+     *
+     * @param field field to parse
+     * @return parsed monetary amount
+     */
     private static double amount(TextField field) {
         String value = field.getText().trim();
 
@@ -440,6 +475,9 @@ public final class PayrollCalculatorView extends VBox {
         }
     }
 
+    /**
+     * Displays a completed payroll calculation.
+     */
     private static void displayResult(
             PayrollResult result,
             Label rHourly,
@@ -498,11 +536,17 @@ public final class PayrollCalculatorView extends VBox {
         rNet.setText(
                 "Net Pay: "
                         + currency.format(result.net())
-                + " "
-                + result.schedule().displayName()
+                        + " "
+                        + result.schedule().displayName()
         );
     }
 
+    /**
+     * Formats hours without unnecessary trailing decimal places.
+     *
+     * @param hours number of hours to format
+     * @return formatted hours
+     */
     private static String formatHours(double hours) {
         if (hours % 1 == 0) {
             return String.format("%.0f", hours);
@@ -511,6 +555,11 @@ public final class PayrollCalculatorView extends VBox {
         return String.format("%.2f", hours);
     }
 
+    /**
+     * Restores result labels to their initial empty state.
+     *
+     * @param labels result labels in display order
+     */
     private static void clearResults(Label... labels) {
         String[] captions = {
                 "Hourly Pay: —",
@@ -529,6 +578,11 @@ public final class PayrollCalculatorView extends VBox {
         }
     }
 
+    /**
+     * Displays a validation error for invalid payroll input.
+     *
+     * @param message error message to display
+     */
     private static void showInputError(String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle("Input Error");
@@ -538,13 +592,19 @@ public final class PayrollCalculatorView extends VBox {
     }
 
     /**
-     * Displays this view on a stage.
+     * Displays the payroll calculator on the supplied stage.
+     *
+     * @param stage application stage
+     * @param onBack action invoked when returning to the main menu
      */
     public static void show(Stage stage, Runnable onBack) {
         PayrollCalculatorView view =
                 new PayrollCalculatorView(onBack);
 
-        stage.setScene(new Scene(view, 800, 700));
+        Scene scene = new Scene(view, 1050, 820);
+        scene.getStylesheets().add(WelcomeStage.STYLESHEET);
+
+        stage.setScene(scene);
         stage.show();
     }
 }

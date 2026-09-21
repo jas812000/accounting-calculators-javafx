@@ -25,23 +25,24 @@ import java.util.function.UnaryOperator;
 /**
  * Annual federal income tax calculator screen.
  *
- * Collects a supported tax year, filing status, and taxable income,
+ * <p>Collects a supported tax year, filing status, and taxable income,
  * then calculates federal income tax using the corresponding
- * progressive tax schedule.
+ * progressive tax schedule.</p>
  */
 public final class TaxCalculatorView extends VBox {
 
+    /**
+     * Constructs the federal income tax calculator screen.
+     *
+     * @param onBack callback used to return to the main menu
+     */
     public TaxCalculatorView(Runnable onBack) {
-        setSpacing(18);
-        setPadding(new Insets(32));
+        setSpacing(26);
+        setPadding(new Insets(48));
         setAlignment(Pos.TOP_CENTER);
 
         Label title = new Label("Federal Income Tax Calculator");
-        title.setStyle(
-                "-fx-font-size: 28px; " +
-                "-fx-font-weight: bold; " +
-                "-fx-font-family: 'Arial';"
-        );
+        title.getStyleClass().add("app-title");
 
         TaxTableRepository taxTableRepository =
                 new TaxTableRepository();
@@ -80,9 +81,12 @@ public final class TaxCalculatorView extends VBox {
             return change;
         };
 
-        amountInput.setTextFormatter(new TextFormatter<>(amountFilter));
+        amountInput.setTextFormatter(
+                new TextFormatter<>(amountFilter)
+        );
 
         Button calculateButton = new Button("Calculate");
+        calculateButton.getStyleClass().add("action-button");
 
         BooleanBinding amountInvalid = Bindings.createBooleanBinding(
                 () -> {
@@ -109,10 +113,12 @@ public final class TaxCalculatorView extends VBox {
 
         Label result = new Label();
         result.setWrapText(true);
+        result.getStyleClass().add("result-total");
 
         calculateButton.setOnAction(event -> {
             int year = yearDropdown.getValue();
             FilingStatus status = filingStatusDropdown.getValue();
+
             double taxableIncome =
                     Double.parseDouble(amountInput.getText().trim());
 
@@ -125,33 +131,37 @@ public final class TaxCalculatorView extends VBox {
                     NumberFormat.getCurrencyInstance(Locale.US);
 
             result.setText(
-                    "Year: " + output.year() + "\n" +
-                    "Filing Status: "
-                            + output.status().displayName() + "\n" +
-                    "Taxable Income: "
-                            + currency.format(output.taxableIncome()) + "\n" +
-                    "Federal Income Tax: "
+                    "Year: " + output.year() + "\n"
+                            + "Filing Status: "
+                            + output.status().displayName() + "\n"
+                            + "Taxable Income: "
+                            + currency.format(
+                            output.taxableIncome()
+                    ) + "\n"
+                            + "Federal Income Tax: "
                             + currency.format(output.federalTax())
             );
         });
 
         Button backButton = new Button("Back to Main Menu");
+        backButton.getStyleClass().add("secondary-button");
+
         backButton.setOnAction(event -> {
             if (onBack != null) {
                 onBack.run();
             }
         });
 
-        double controlWidth = 240;
+        double controlWidth = 360;
 
-        yearDropdown.setMaxWidth(controlWidth);
-        filingStatusDropdown.setMaxWidth(controlWidth);
-        amountInput.setMaxWidth(controlWidth);
-        calculateButton.setMaxWidth(controlWidth);
-        backButton.setMaxWidth(controlWidth);
+        yearDropdown.setPrefWidth(controlWidth);
+        filingStatusDropdown.setPrefWidth(controlWidth);
+        amountInput.setPrefWidth(controlWidth);
+        calculateButton.setPrefWidth(controlWidth);
+        backButton.setPrefWidth(controlWidth);
 
         VBox content = new VBox(
-                12,
+                16,
                 yearDropdown,
                 filingStatusDropdown,
                 amountInput,
@@ -159,8 +169,10 @@ public final class TaxCalculatorView extends VBox {
                 backButton,
                 result
         );
-
         content.setAlignment(Pos.CENTER);
+        content.setMaxWidth(460);
+        content.setPadding(new Insets(30));
+        content.getStyleClass().add("card");
 
         getChildren().addAll(title, content);
     }
@@ -174,7 +186,10 @@ public final class TaxCalculatorView extends VBox {
     public static void show(Stage stage, Runnable onBack) {
         TaxCalculatorView view = new TaxCalculatorView(onBack);
 
-        stage.setScene(new Scene(view, 800, 600));
+        Scene scene = new Scene(view, 900, 700);
+        scene.getStylesheets().add(WelcomeStage.STYLESHEET);
+
+        stage.setScene(scene);
         stage.show();
     }
 }

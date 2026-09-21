@@ -21,106 +21,125 @@ import java.util.function.UnaryOperator;
 /**
  * Expenses entry and summary screen.
  *
- * Allows users to add categorized expense records into an in-memory table,
- * remove items, and view the current total. This view focuses on input
- * validation and consistent formatting rather than persistence.
+ * <p>Allows users to add categorized expense records into an in-memory
+ * table, remove items, and view the current total. This view focuses on
+ * input validation and consistent formatting rather than persistence.</p>
  */
 public class ExpensesView extends VBox {
 
-    /** In-memory expense list backing the TableView. */
+    /** In-memory expense list backing the table. */
     private final ObservableList<Expense> expenses =
             FXCollections.observableArrayList();
 
     /** Label showing the current total for the session. */
-    private final Label totalLabel = new Label("Total: $0.00");
+    private final Label totalLabel =
+            new Label("Total: $0.00");
 
     /**
      * Constructs the expenses screen.
      *
-     * @param onBack callback to return to the main menu
+     * @param onBack callback used to return to the main menu
      */
     public ExpensesView(Runnable onBack) {
-        setSpacing(18);
-        setPadding(new Insets(32));
+        setSpacing(24);
+        setPadding(new Insets(40));
         setAlignment(Pos.TOP_CENTER);
 
         Label title = new Label("Expenses Calculator");
-        title.setStyle(
-                "-fx-font-size: 28px; " +
-                        "-fx-font-weight: bold; " +
-                        "-fx-font-family: 'Arial';"
-        );
+        title.getStyleClass().add("app-title");
 
-        ComboBox<ExpenseCategory> categoryDropdown = new ComboBox<>();
-        categoryDropdown.getItems().addAll(ExpenseCategory.values());
-        categoryDropdown.setPromptText("Select expense category");
+        // --- Expense entry form ---
+
+        ComboBox<ExpenseCategory> categoryDropdown =
+                new ComboBox<>();
+        categoryDropdown.getItems().addAll(
+                ExpenseCategory.values()
+        );
+        categoryDropdown.setPromptText(
+                "Select expense category"
+        );
+        categoryDropdown.setPrefWidth(320);
 
         TextField descriptionInput = new TextField();
-        descriptionInput.setPromptText("Expense description (optional)");
+        descriptionInput.setPromptText(
+                "Expense description (optional)"
+        );
+        descriptionInput.setPrefWidth(520);
 
         TextField amountInput = new TextField();
         amountInput.setPromptText("Amount");
         amountInput.setPrefColumnCount(12);
-        amountInput.setPrefWidth(200);
-        amountInput.setMaxWidth(200);
+        amountInput.setPrefWidth(280);
+        amountInput.setMaxWidth(280);
         HBox.setHgrow(amountInput, Priority.NEVER);
 
-        UnaryOperator<TextFormatter.Change> amountFilter = change -> {
-            String newText = change.getControlNewText();
+        UnaryOperator<TextFormatter.Change> amountFilter =
+                change -> {
+                    String newText =
+                            change.getControlNewText();
 
-            if (newText.isEmpty()) {
-                return change;
-            }
+                    if (newText.isEmpty()) {
+                        return change;
+                    }
 
-            if (!newText.matches("\\d*(\\.\\d*)?")) {
-                return null;
-            }
+                    if (!newText.matches("\\d*(\\.\\d*)?")) {
+                        return null;
+                    }
 
-            int dot = newText.indexOf('.');
-            if (dot >= 0 && newText.length() - dot - 1 > 2) {
-                return null;
-            }
+                    int dot = newText.indexOf('.');
 
-            return change;
-        };
+                    if (dot >= 0
+                            && newText.length() - dot - 1 > 2) {
+                        return null;
+                    }
 
-        amountInput.setTextFormatter(new TextFormatter<>(amountFilter));
+                    return change;
+                };
+
+        amountInput.setTextFormatter(
+                new TextFormatter<>(amountFilter)
+        );
 
         DatePicker dueDatePicker = new DatePicker();
         dueDatePicker.setPromptText("Due date (optional)");
+        dueDatePicker.setPrefWidth(280);
 
-        Button addBtn = new Button("Add expense");
-        addBtn.setMinWidth(140);
-        addBtn.setPrefWidth(140);
+        Button addBtn = new Button("Add Expense");
+        addBtn.setMinWidth(180);
+        addBtn.setPrefWidth(180);
+        addBtn.getStyleClass().add("action-button");
 
         addBtn.disableProperty().bind(
                 categoryDropdown.getSelectionModel()
                         .selectedItemProperty()
                         .isNull()
-                        .or(Bindings.createBooleanBinding(
-                                () -> {
-                                    String text = amountInput.getText();
+                        .or(
+                                Bindings.createBooleanBinding(
+                                        () -> {
+                                            String text =
+                                                    amountInput.getText();
 
-                                    return text == null
-                                            || text.isBlank()
-                                            || !text.matches("\\d+(\\.\\d{1,2})?");
-                                },
-                                amountInput.textProperty()
-                        ))
-        );
-
-        addBtn.setStyle(
-                "-fx-background-color: #4CAF50; " +
-                        "-fx-text-fill: white; " +
-                        "-fx-font-weight: bold;"
+                                            return text == null
+                                                    || text.isBlank()
+                                                    || !text.matches(
+                                                    "\\d+(\\.\\d{1,2})?"
+                                            );
+                                        },
+                                        amountInput.textProperty()
+                                )
+                        )
         );
 
         addBtn.setOnAction(event -> {
-            String description = descriptionInput.getText();
-            String amountText = amountInput.getText().trim();
+            String description =
+                    descriptionInput.getText();
+
+            String amountText =
+                    amountInput.getText().trim();
 
             try {
-                double amount = Double.parseDouble(amountText);
+                double amount =
+                        Double.parseDouble(amountText);
 
                 Expense expense = new Expense(
                         categoryDropdown.getValue(),
@@ -135,14 +154,21 @@ public class ExpensesView extends VBox {
                 descriptionInput.clear();
                 amountInput.clear();
                 dueDatePicker.setValue(null);
-                categoryDropdown.getSelectionModel().clearSelection();
-                categoryDropdown.requestFocus();
 
-            } catch (IllegalArgumentException ex) {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
+                categoryDropdown
+                        .getSelectionModel()
+                        .clearSelection();
+
+                categoryDropdown.requestFocus();
+            } catch (IllegalArgumentException exception) {
+                Alert alert =
+                        new Alert(Alert.AlertType.ERROR);
+
                 alert.setTitle("Invalid Expense");
                 alert.setHeaderText(null);
-                alert.setContentText(ex.getMessage());
+                alert.setContentText(
+                        exception.getMessage()
+                );
                 alert.showAndWait();
 
                 amountInput.requestFocus();
@@ -150,23 +176,31 @@ public class ExpensesView extends VBox {
             }
         });
 
-        HBox amountRow = new HBox(10, amountInput, addBtn);
+        HBox amountRow =
+                new HBox(14, amountInput, addBtn);
         amountRow.setAlignment(Pos.CENTER_LEFT);
         amountRow.setFillHeight(false);
 
         VBox form = new VBox(
-                12,
+                14,
                 categoryDropdown,
                 descriptionInput,
                 amountRow,
                 dueDatePicker
         );
-
         form.setAlignment(Pos.CENTER_LEFT);
-        form.setMaxWidth(520);
+        form.setMaxWidth(700);
+        form.setPadding(new Insets(24));
+        form.getStyleClass().add("card");
 
-        TableView<Expense> table = new TableView<>(expenses);
-        table.setPrefHeight(280);
+        // --- Expense table ---
+
+        TableView<Expense> table =
+                new TableView<>(expenses);
+
+        table.setPrefHeight(340);
+        table.setMaxWidth(900);
+
         table.setColumnResizePolicy(
                 TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS
         );
@@ -176,7 +210,9 @@ public class ExpensesView extends VBox {
 
         categoryColumn.setCellValueFactory(cell ->
                 new ReadOnlyStringWrapper(
-                        cell.getValue().getCategory().toString()
+                        cell.getValue()
+                                .getCategory()
+                                .toString()
                 )
         );
 
@@ -211,7 +247,9 @@ public class ExpensesView extends VBox {
                 new ReadOnlyStringWrapper(
                         cell.getValue().getDueDate() == null
                                 ? ""
-                                : cell.getValue().getDueDate().toString()
+                                : cell.getValue()
+                                .getDueDate()
+                                .toString()
                 )
         );
 
@@ -224,11 +262,16 @@ public class ExpensesView extends VBox {
                 )
         );
 
-        Button removeBtn = new Button("Remove selected");
+        // --- Actions and total ---
+
+        Button removeBtn =
+                new Button("Remove Selected");
+        removeBtn.getStyleClass().add("secondary-button");
 
         removeBtn.setOnAction(event -> {
             Expense selected =
-                    table.getSelectionModel().getSelectedItem();
+                    table.getSelectionModel()
+                            .getSelectedItem();
 
             if (selected != null) {
                 expenses.remove(selected);
@@ -236,7 +279,9 @@ public class ExpensesView extends VBox {
             }
         });
 
-        Button backBtn = new Button("Back to Main Menu");
+        Button backBtn =
+                new Button("Back to Main Menu");
+        backBtn.getStyleClass().add("secondary-button");
 
         backBtn.setOnAction(event -> {
             if (onBack != null) {
@@ -244,21 +289,24 @@ public class ExpensesView extends VBox {
             }
         });
 
-        totalLabel.setStyle(
-                "-fx-font-size: 16px; -fx-font-weight: bold;"
-        );
+        totalLabel.getStyleClass().add("result-total");
 
         HBox actions = new HBox(
-                12,
+                16,
                 removeBtn,
                 totalLabel,
                 backBtn
         );
-
         actions.setAlignment(Pos.CENTER_LEFT);
 
-        VBox content = new VBox(16, form, table, actions);
+        VBox content = new VBox(
+                22,
+                form,
+                table,
+                actions
+        );
         content.setAlignment(Pos.TOP_CENTER);
+        content.setMaxWidth(900);
 
         getChildren().addAll(title, content);
     }

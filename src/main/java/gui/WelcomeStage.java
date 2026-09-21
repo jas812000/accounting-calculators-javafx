@@ -1,8 +1,8 @@
 package gui;
 
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -18,6 +18,12 @@ import javafx.stage.Stage;
  */
 public class WelcomeStage extends Application {
 
+    /** Shared application stylesheet. */
+    public static final String STYLESHEET =
+            WelcomeStage.class
+                    .getResource("/styles/application.css")
+                    .toExternalForm();
+
     /** Primary application window reused when navigating between views. */
     private Stage primaryStage;
 
@@ -30,48 +36,81 @@ public class WelcomeStage extends Application {
     public void start(Stage stage) {
         this.primaryStage = stage;
 
-        primaryStage.setTitle("Accounting App");
+        primaryStage.setTitle("Accounting Calculators");
         showMenuScene();
         primaryStage.show();
     }
 
     /** Displays the main menu used to navigate between calculators. */
     private void showMenuScene() {
-        Label menuLabel = new Label("Main Menu");
-        menuLabel.setStyle(
-                "-fx-font-size: 36px; " +
-                "-fx-font-weight: bold; " +
-                "-fx-font-family: 'Arial';"
-        );
+        Label titleLabel = new Label("Accounting Calculators");
+        titleLabel.getStyleClass().add("app-title");
 
-        Button payrollButton = new Button("Payroll Calculator");
+        Label subtitleLabel =
+                new Label("Payroll, Tax & Expense Tools");
+        subtitleLabel.getStyleClass().add("app-subtitle");
+
+        Button payrollButton =
+                createMenuButton("Payroll Calculator", "primary-button");
         payrollButton.setOnAction(event -> showPayrollScene());
 
-        Button taxCalculatorButton = new Button("Tax Calculator");
+        Button taxCalculatorButton =
+                createMenuButton("Tax Calculator", "primary-button");
         taxCalculatorButton.setOnAction(
                 event -> showTaxCalculatorScene()
         );
 
-        Button expensesButton = new Button("Expenses Calculator");
+        Button expensesButton =
+                createMenuButton("Expenses Calculator", "primary-button");
         expensesButton.setOnAction(event -> showExpensesScene());
 
-        Button exitButton = new Button("Exit");
-        exitButton.setOnAction(event -> exitApplication());
+        Button exitButton =
+                createMenuButton("Exit", "exit-button");
+        exitButton.setOnAction(event -> showExitScene());
 
-        VBox menuLayout = new VBox(
-                20,
-                menuLabel,
+        VBox menuCard = new VBox(
+                18,
+                titleLabel,
+                subtitleLabel,
                 payrollButton,
                 taxCalculatorButton,
                 expensesButton,
                 exitButton
         );
-        menuLayout.setPadding(new Insets(20));
-        menuLayout.setStyle("-fx-alignment: center;");
+        menuCard.setAlignment(Pos.CENTER);
+        menuCard.setMaxWidth(500);
+        menuCard.setPadding(new Insets(42));
+        menuCard.getStyleClass().add("card");
 
-        primaryStage.setScene(
-                new Scene(menuLayout, 800, 600)
+        VBox.setMargin(
+                payrollButton,
+                new Insets(18, 0, 0, 0)
         );
+
+        VBox root = new VBox(menuCard);
+        root.setAlignment(Pos.CENTER);
+        root.setPadding(new Insets(50));
+
+        Scene scene = new Scene(root, 900, 650);
+        scene.getStylesheets().add(STYLESHEET);
+        primaryStage.setScene(scene);
+    }
+
+    /**
+     * Creates a consistently sized main-menu button.
+     *
+     * @param text text displayed on the button
+     * @param styleClass semantic style class for the button
+     * @return configured menu button
+     */
+    private Button createMenuButton(
+            String text,
+            String styleClass
+    ) {
+        Button button = new Button(text);
+        button.setPrefSize(300, 50);
+        button.getStyleClass().add(styleClass);
+        return button;
     }
 
     /** Navigates to the Payroll calculator. */
@@ -95,14 +134,14 @@ public class WelcomeStage extends Application {
         ExpensesView view =
                 new ExpensesView(this::showMenuScene);
 
-        primaryStage.setScene(
-                new Scene(view, 800, 600)
-        );
+        Scene scene = new Scene(view, 1000, 720);
+        scene.getStylesheets().add(STYLESHEET);
+        primaryStage.setScene(scene);
     }
 
-    /** Closes the JavaFX application. */
-    private void exitApplication() {
-        Platform.exit();
+    /** Navigates to the application exit screen. */
+    private void showExitScene() {
+        ExitView.show(primaryStage, this::showMenuScene);
     }
 
     /**
