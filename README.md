@@ -68,6 +68,29 @@ Provides an in-memory expense tracker with:
 
 ## Application Interface
 
+The following screenshots demonstrate the application's three calculators.
+
+### Payroll Calculator
+
+Calculates gross pay, federal withholding, payroll taxes,
+deductions, and net pay.
+
+![Payroll Calculator](docs/screenshots/payroll-calculator.png)
+
+### Federal Income Tax Calculator
+
+Calculates annual federal income tax using the selected
+tax year, filing status, and taxable income.
+
+![Federal Income Tax Calculator](docs/screenshots/tax-calculator.png)
+
+### Expenses Calculator
+
+Tracks categorized expenses, optional due dates,
+and automatically calculated totals.
+
+![Expenses Calculator](docs/screenshots/expenses-calculator.png)
+
 The JavaFX interface provides a central menu for navigating between the three calculators.
 
 A shared CSS stylesheet provides consistent styling for:
